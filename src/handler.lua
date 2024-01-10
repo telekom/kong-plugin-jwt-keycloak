@@ -85,7 +85,7 @@ local function custom_helper_issuer_get_keys(well_known_endpoint, cafile)
 
   local decoded_keys = {}
   for i, key in ipairs(keys) do
-      decoded_keys[i] = jwt_decoder:base64_decode(key)
+      decoded_keys[i] = custom_base64_decode(key)
   end
 
   kong.log.debug('Number of keys retrieved: ' .. table.getn(decoded_keys))
