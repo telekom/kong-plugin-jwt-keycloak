@@ -1,6 +1,6 @@
 ## Build plugin
 ARG KONG_VERSION
-FROM docker.io/kong:${KONG_VERSION} as builder
+FROM docker.io/kong:${KONG_VERSION} AS builder
 
 # Root needed to install dependencies
 USER root
@@ -28,5 +28,13 @@ COPY --from=builder /tmp/*.rock /tmp/
 # Root needed for installing plugin
 USER root
 
+# gcc & musl-dev install and uninstall has to be in one layer, to save space
+RUN apk add --no-cache gcc musl-dev && \
+      luarocks install luaossl OPENSSL_DIR=/usr/local/kong CRYPTO_DIR=/usr/local/kong && \
+      apk del --no-cache gcc musl-dev
+
 ARG PLUGIN_VERSION
 RUN luarocks install /tmp/kong-plugin-jwt-keycloak-${PLUGIN_VERSION}.all.rock
+
+USER kong
+
