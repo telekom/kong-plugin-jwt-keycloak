@@ -1,0 +1,85 @@
+x-kong-image: &kong-image
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      KONG_VERSION: 2.8.3
+      PLUGIN_VERSION: 1.3.0-1
+  environment:
+    KONG_DATABASE: postgres
+    KONG_PG_HOST: postgres
+    KONG_PG_PORT: 5432
+    KONG_PG_DATABASE: kong
+    KONG_PG_SCHEMA: public
+    KONG_PG_USER: kong
+    KONG_PG_PASSWORD: kong
+    KONG_LOG_LEVEL: debug
+    KONG_PROXY_ACCESS_LOG: /dev/stdout
+    KONG_ADMIN_ACCESS_LOG: /dev/stdout
+    KONG_PROXY_ERROR_LOG: /dev/stdout
+    KONG_ADMIN_ERROR_LOG: /dev/stdout
+    KONG_ADMIN_LISTEN: 0.0.0.0:8001
+
+services:
+  kong_init:
+    <<: *kong-image
+    depends_on:
+      - postgres
+    entrypoint: [ "/bin/sh", "-c", "until kong migrations bootstrap; do echo waiting for database; sleep 2; done;" ]
+  kong:
+    <<: *kong-image
+    depends_on:
+      kong_init:
+        condition: service_completed_successfully
+    entrypoint: ["/bin/sh", "-c", "KONG_NGINX_DAEMON='off' kong start"]
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: kong
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kong
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  kc-pg:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg_kc_data:/var/lib/postgresql/data
+  kc:
+    image: quay.io/keycloak/keycloak:26.2
+    depends_on:
+      - kc-pg
+    ports:
+      - "8080:8080"
+    command: [ "start-dev" ]
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - JAVA_OPTS=-Djava.net.preferIPv4Stack=true
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://kc-pg:5432/postgres
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=postgres
+      - KC_HTTP_PORT=8080
+      - KC_PROXY=edge
+      - KC_HOSTNAME_STRICT=false
+      - KC_HTTP_RELATIVE_PATH=/auth
+      - KC_HTTP_ENABLED=true
+
+  tests:
+    image: badouralix/curl-jq
+    depends_on:
+      - kong
+    volumes:
+      - ./tests:/opt/tests:ro
+    entrypoint: [ "/bin/sh", "-c", "cd /opt/tests && /bin/sh ./configure_jwt_plugin.sh && /bin/sh ./test_jwt_plugin.sh" ]
+
+volumes:
+  pg_data:
+  pg_kc_data:

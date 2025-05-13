@@ -36,7 +36,8 @@ local function custom_base64_decode(input)
   local remainder = #input % 4
   if remainder > 0 then
     local padlen = 4 - remainder
-    input = input .. rep("=", padlen)
+    print("Padding input with " .. padlen .. " characters")
+    input = input .. string.rep("=", padlen)
   end
 
   input = input:gsub("-", "+"):gsub("_", "/")
@@ -371,13 +372,10 @@ local function do_authentication(conf)
   end
 
   -- Decode token to find out who the consumer is
-  local jwt, err = jwt_decoder:new(token)
-  if err then
+  local jwt, jwt_err = jwt_decoder:new(token)
+  if jwt_err then
     return false, { status = 401, message = "Bad token; " .. tostring(err) }
   end
-
-  local claims = jwt.claims
-  local header = jwt.header
 
   -- Verify that the issuer is allowed
   if not validate_issuer(conf.allowed_iss, jwt.claims) then
@@ -407,7 +405,7 @@ local function do_authentication(conf)
 
   -- Verify the JWT registered claims
   if conf.maximum_expiration ~= nil and conf.maximum_expiration > 0 then
-    local ok, errors = jwt:check_maximum_expiration(conf.maximum_expiration)
+    local ok, _ = jwt:check_maximum_expiration(conf.maximum_expiration)
     if not ok then
       return false, { status = 403, message = "Token claims invalid: " .. custom_helper_table_to_string(errors) }
     end
@@ -415,7 +413,7 @@ local function do_authentication(conf)
 
   -- Match consumer
   if conf.consumer_match then
-    local ok, err = custom_match_consumer(conf, jwt)
+    local ok, _ = custom_match_consumer(conf, jwt)
     if not ok then
       return ok, err
     end
