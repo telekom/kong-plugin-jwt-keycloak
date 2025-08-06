@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 -- local keycloak_keys = require("kong.plugins.jwt-keycloak.keycloak_keys")
 -- local get_issuer_keys = keycloak_keys.get_issuer_keys
 -- local get_wellknown_endpoint = keycloak_keys.get_wellknown_endpoint

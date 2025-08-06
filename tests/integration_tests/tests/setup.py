@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 import requests
 
 # This way how to import is really a hacky bad way, but i hat not found a way

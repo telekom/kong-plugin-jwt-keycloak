@@ -1,20 +1,22 @@
-<h1>Kong plugin jwt-keycloak</h1>
+<!--
+SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
 
-> **⚠️ This fork is maintained for a limited set of version combinations**
-> 
+SPDX-License-Identifier: Apache-2.0
+-->
+
+# Kong Plugin jwt-keycloak
+
+> **⚠️ This fork is a continuation of https://github.com/telekom-digioss/kong-plugin-jwt-keycloak for a limited set of
+version combinations**
+>
 > The official author of the plugin no longer maintains it since 24.08.2021  
 > Details see: <https://github.com/gbbirkisson/kong-plugin-jwt-keycloak/blob/master/README.md>
->
-> We will continue to use this plugin in our project and maintain here this fork for it.  
-> But we do not need backward compatible changes... so we will not test it to be able to work with older versions of kong.
->
-> Supported version matrix:
-> * kong dependencies of version 2.8.1 .... and higher versions
-> * postgres database of version 12.x ... and higher versions
-> * keycloak versions in the way how redhat-sso contains the versions in their product starting from keycloak 9.0
 
-
-A plugin for the [Kong Microservice API Gateway](https://konghq.com/solutions/gateway/) to validate access tokens issued by [Keycloak](https://www.keycloak.org/). It uses the [Well-Known Uniform Resource Identifiers](https://tools.ietf.org/html/rfc5785) provided by [Keycloak](https://www.keycloak.org/) to load [JWK](https://tools.ietf.org/html/rfc7517) public keys from issuers that are specifically allowed for each endpoint.
+A plugin for the [Kong API Gateway](https://konghq.com/solutions/gateway/) to validate access tokens issued
+by [Keycloak](https://www.keycloak.org/). It uses
+the [Well-Known Uniform Resource Identifiers](https://tools.ietf.org/html/rfc5785) provided
+by [Keycloak](https://www.keycloak.org/) to load [JWK](https://tools.ietf.org/html/rfc7517) public keys from issuers
+that are specifically allowed for each endpoint.
 
 The biggest advantages of this plugin are that it supports:
 
@@ -32,29 +34,30 @@ If you have any suggestion or comments, please feel free to open an issue on thi
 - [Table of Contents](#table-of-contents)
 - [Tested and working for](#tested-and-working-for)
 - [Installation](#installation)
-  - [Using luarocks](#using-luarocks)
-  - [From source](#from-source)
-    - [Packing the rock](#packing-the-rock)
-    - [Installing the rock](#installing-the-rock)
-  - [Enabling plugin](#enabling-plugin)
-  - [Changing plugin priority](#changing-plugin-priority)
-  - [Examples](#examples)
+    - [Using luarocks](#using-luarocks)
+    - [From source](#from-source)
+        - [Packing the rock](#packing-the-rock)
+        - [Installing the rock](#installing-the-rock)
+    - [Enabling plugin](#enabling-plugin)
+    - [Changing plugin priority](#changing-plugin-priority)
+    - [Examples](#examples)
 - [Usage](#usage)
-  - [Enabling on endpoints](#enabling-on-endpoints)
-    - [Service](#service)
-    - [Route](#route)
-    - [Globally](#globally)
-  - [Parameters](#parameters)
-  - [Example](#example)
-  - [Caveats](#caveats)
+    - [Enabling on endpoints](#enabling-on-endpoints)
+        - [Service](#service)
+        - [Route](#route)
+        - [Globally](#globally)
+    - [Parameters](#parameters)
+    - [Example](#example)
+    - [Caveats](#caveats)
 - [Testing](#testing)
-  - [Setup before tests](#setup-before-tests)
-  - [Running tests](#running-tests)
-  - [Useful debug commands](#useful-debug-commands)
+    - [Setup before tests](#setup-before-tests)
+    - [Running tests](#running-tests)
+    - [Useful debug commands](#useful-debug-commands)
 
 ## Tested and working for
 
 There are a few limitations about testing combinations:
+
 * Kong only provides a limited set off their lua code on luarocks  
   <https://luarocks.org/modules/kong/kong>  
   for this reason currently only these version combinations can be validated
@@ -63,21 +66,22 @@ There are a few limitations about testing combinations:
   For this reason not the latest patch versions on the contained rhsso product versions can be used for testing  
   <https://access.redhat.com/solutions/3296901>
 
-| Kong Version       |    Tests passing   |
-| ------------------ | :----------------: |
-| 2.8.1              | ✅ |
-| 3.0.0              | ✅ |
-| 3.1.0              | ✅ |
-| 3.2.2              | ✅ |
-| 3.3.0              | ✅ |
-| 3.4.0              | ✅ |
+| Kong Version | Tests passing |
+|--------------|:-------------:|
+| 2.8.1        |       ✅       |
+| 3.0.0        |       ✅       |
+| 3.1.0        |       ✅       |
+| 3.2.2        |       ✅       |
+| 3.3.0        |       ✅       |
+| 3.4.0        |       ✅       |
+| 3.9.1        |       ✅       |
 
-
-| Keycloak Version   |    Tests passing   |
-| ------------------ | :----------------: |
-| 9.0.3  (RHSSO-7.4) | ✅ |
-| 15.0.2 (RHSSO-7.5) | ✅ |
+| Keycloak Version   |                                  Tests passing                                   |
+|--------------------|:--------------------------------------------------------------------------------:|
+| 9.0.3  (RHSSO-7.4) |                                        ✅                                         |
+| 15.0.2 (RHSSO-7.5) |                                        ✅                                         |
 | 18.0.2 (RHSSO-7.6) | ✖️ [Issue](https://github.com/telekom-digioss/kong-plugin-jwt-keycloak/issues/5) |
+| 26.2.0             |                                        ✅                                         |
 
 ## Installation
 
@@ -110,7 +114,8 @@ Set enabled kong enabled plugins, i.e. with environmental variable: `KONG_PLUGIN
 
 ### Changing plugin priority
 
-In some cases you might want to change the execution priority of the plugin. You can do that by setting an environmental variable: `JWT_KEYCLOAK_PRIORITY="900"`
+In some cases you might want to change the execution priority of the plugin. You can do that by setting an environmental
+variable: `JWT_KEYCLOAK_PRIORITY="900"`
 
 ### Examples
 
@@ -120,7 +125,9 @@ See [Dockerfile](./Dockerfile) for more concrete examples.
 
 ### Enabling on endpoints
 
-The same principle applies to this plugin as the [standard jwt plugin that comes with kong](https://docs.konghq.com/hub/kong-inc/jwt/). You can enable it on service, routes and globally.
+The same principle applies to this plugin as
+the [standard jwt plugin that comes with kong](https://docs.konghq.com/hub/kong-inc/jwt/). You can enable it on service,
+routes and globally.
 
 #### Service
 
@@ -131,6 +138,7 @@ curl -X POST http://localhost:8001/services/{service}/plugins \
 ```
 
 #### Route
+
 ```bash
 curl -X POST http://localhost:8001/routes/{route_id}/plugins \
     --data "name=jwt-keycloak" \
@@ -219,11 +227,15 @@ This should give you the response: `plugin=working`
 
 ### Caveats
 
-To verify token issuers, this plugin needs to be able to access the `<ISSUER_REALM_URL>/.well-known/openid-configuration` and `<ISSUER_REALM_URL>/protocol/openid-connect/certs` endpoints of keycloak. If you are getting the error `{ "message": "Unable to get public key for issuer" }` it is probably because for some reason the plugin is unable to access these endpoints.
+To verify token issuers, this plugin needs to be able to access the
+`<ISSUER_REALM_URL>/.well-known/openid-configuration` and `<ISSUER_REALM_URL>/protocol/openid-connect/certs` endpoints
+of keycloak. If you are getting the error `{ "message": "Unable to get public key for issuer" }` it is probably because
+for some reason the plugin is unable to access these endpoints.
 
 ## Testing
 
 Requires:
+
 * make
 * docker
 
@@ -251,3 +263,17 @@ make kong-log # For proxy logs
 make kong-err-proxy # For proxy error logs
 make kong-err-admin # For admin error logs
 ```
+
+## Code of Conduct
+
+This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/) in version 2.1 as our code of
+conduct. Please see the details in our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). All contributors must abide by the code
+of conduct.
+
+By participating in this project, you agree to abide by its [Code of Conduct](./CODE_OF_CONDUCT.md) at all times.
+
+## Licensing
+
+This project follows the [REUSE standard for software licensing](https://reuse.software/).
+Each file contains copyright and license information, and license texts can be found in the [./LICENSES](./LICENSES)
+folder. For more information visit <https://reuse.software/>.

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 UNIT_TEST_IMAGE:=jwt-keycloak-unit-test-image
 INTE_TEST_IMAGE:=jwt-keycloak-inte-test-image
 

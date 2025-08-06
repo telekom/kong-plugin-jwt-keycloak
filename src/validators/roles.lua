@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 local function validate_client_roles(allowed_client_roles, jwt_claims)
     if allowed_client_roles == nil or table.getn(allowed_client_roles) == 0 then
         return true

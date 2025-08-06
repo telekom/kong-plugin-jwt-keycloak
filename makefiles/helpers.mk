@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 HTTPBIN_IMAGE:=docker.io/kennethreitz/httpbin
 HTTPBIN_CONTAINER_NAME:=kong_test_httpbin
 HTTPBIN_PORT:=8093

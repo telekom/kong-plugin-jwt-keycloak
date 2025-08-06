@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from tests.utils import *
 
 class TestRoles(unittest.TestCase):

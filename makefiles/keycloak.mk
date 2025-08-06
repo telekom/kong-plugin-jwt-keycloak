@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 KEYCLOAK_IMAGE:=quay.io/keycloak/keycloak:15.0.2
 # KEYCLOAK_IMAGE:=quay.io/keycloak/keycloak:18.0.2 #--> Look deeper. There is a problem wir keycloak key rotation test results
 KEYCLOAK_CONTAINER_NAME:=kong_test_keycloack

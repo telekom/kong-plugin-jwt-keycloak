@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 KONG_CONTAINER_NAME:=kong
 KONG_PORT:=8000
 KONG_ADMIN_PORT:=8001

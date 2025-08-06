@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ## Build plugin
 ARG KONG_VERSION=3.9.1
 
@@ -14,7 +18,7 @@ RUN if [ -x "$(command -v apk)" ]; then apk add --no-cache $DISTO_ADDONS; \
 WORKDIR /tmp
 
 COPY ./*.rockspec /tmp
-COPY ./LICENSE /tmp/LICENSE
+COPY ./LICENSES/Apache-2.0.txt /tmp/LICENSE
 COPY ./src /tmp/src
 ARG PLUGIN_VERSION
 RUN luarocks make && luarocks pack kong-plugin-jwt-keycloak ${PLUGIN_VERSION}

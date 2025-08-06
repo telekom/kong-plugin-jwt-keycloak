@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 local function validate_issuer(allowed_issuers, jwt_claims)
     if allowed_issuers == nil or table.getn(allowed_issuers) == 0 then
         return nil, "Allowed issuers is empty"

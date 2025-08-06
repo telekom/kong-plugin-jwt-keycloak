@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 local function validate_scope(allowed_scopes, jwt_claims)
     if allowed_scopes == nil or table.getn(allowed_scopes) == 0 then
         return true

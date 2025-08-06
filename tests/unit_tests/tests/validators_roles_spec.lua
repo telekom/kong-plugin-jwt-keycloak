@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 local validate_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_roles
 
 local test_claims = {
