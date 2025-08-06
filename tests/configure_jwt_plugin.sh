@@ -1,10 +1,7 @@
 #!/bin/bash
-
-KONG_ADMIN_URL="http://kong:8001"
-KONG_PROXY_URL="http://kong:8000"
-KC_ISSUER_URL="http://kc:8080/auth/realms/default"
-KC_CLIENT_ID="test-user"
-SIGNING_ALG="ES256"
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
 
 # configure Kong consumers and group with the same name
 curl -i -X POST $KONG_ADMIN_URL/consumers \
@@ -15,7 +12,6 @@ curl -i -X POST $KONG_ADMIN_URL/consumers \
 curl -i -X POST $KONG_ADMIN_URL/services \
   --data "name=example-service" \
   --data "url=http://httpbin:8080" \
-
 
 curl -i -X POST $KONG_ADMIN_URL/routes \
   --data "paths[]=/example" \
@@ -30,8 +26,8 @@ curl -i -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq
 
 curl -i -X POST $KONG_ADMIN_URL/plugins \
   --data "name=jwt-keycloak" \
-  --data "config.allowed_iss=$KC_ISSUER_URL" \
-  --data "config.algorithm=$SIGNING_ALG" \
+  --data "config.allowed_iss=$KC_URL/auth/realms/$KC_REALM" \
+  --data "config.algorithm=$KC_SIGNING_KEY_ALGORITHM" \
   --data "config.consumer_match_claim_custom_id=true" \
   --data "config.consumer_match=true" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')"

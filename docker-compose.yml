@@ -76,12 +76,14 @@ services:
     image: badouralix/curl-jq
     depends_on:
       - kong
+      - kc
+      - httpbin
     volumes:
       - ./tests:/opt/tests:ro
-    entrypoint: [ "/bin/sh", "-c", "cd /opt/tests && /bin/sh ./configure_jwt_plugin.sh && /bin/sh ./test_jwt_plugin.sh" ]
+    entrypoint: [ "/bin/sh", "-c", "cd /opt/tests && /bin/sh ./run_tests.sh" ]
 
   httpbin:
-    image: ghcr.io/mccutchen/go-httpbin:2.18.3
+    image: mccutchen/go-httpbin:2.18.3
     ports:
       - "8080"
 volumes:

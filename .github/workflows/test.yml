@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: test
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-plugins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: Run Tests
+        run: docker compose build --no-cache && docker compose up tests
