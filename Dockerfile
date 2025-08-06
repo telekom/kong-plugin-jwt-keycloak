@@ -1,5 +1,5 @@
 ## Build plugin
-ARG KONG_VERSION
+ARG KONG_VERSION=3.9.1
 
 FROM docker.io/kong:${KONG_VERSION} AS builder
 
@@ -38,7 +38,7 @@ RUN if [ -x "$(command -v apk)" ]; then apk add --no-cache $FIX_DEPENDENCIES; \
     elif [ -x "$(command -v apt-get)" ]; then apt-get remove --purge -y $FIX_DEPENDENCIES; \
     fi
 
-ARG PLUGIN_VERSION
+ARG PLUGIN_VERSION=1.4.0-1
 RUN luarocks install /tmp/kong-plugin-jwt-keycloak-${PLUGIN_VERSION}.all.rock
 
 USER kong

@@ -14,7 +14,7 @@ curl -i -X POST $KONG_ADMIN_URL/consumers \
 # Configure example service to httpbin.org, route and acl with jwt-keycloak plugin
 curl -i -X POST $KONG_ADMIN_URL/services \
   --data "name=example-service" \
-  --data "url=http://httpbin.org" \
+  --data "url=http://httpbin:8080" \
 
 
 curl -i -X POST $KONG_ADMIN_URL/routes \
@@ -25,11 +25,6 @@ curl -i -X POST $KONG_ADMIN_URL/routes \
   --data "protocols[]=https"
 
 curl -i -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq -r '.data[] | select(.name=="acl") | .id')
-
-#curl -i -X POST $KONG_ADMIN_URL/plugins \
-#  --data "name=acl" \
-#  --data "config.whitelist[]=3586135c-c740-404f-b54d-c98794c6ec0b" \
-#  --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')"
 
 curl -i -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq -r '.data[] | select(.name=="jwt-keycloak") | .id')
 

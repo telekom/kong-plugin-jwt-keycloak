@@ -3,8 +3,8 @@ x-kong-image: &kong-image
     context: .
     dockerfile: Dockerfile
     args:
-      KONG_VERSION: 2.8.3
-      PLUGIN_VERSION: 1.3.0-1
+      KONG_VERSION: 3.9.1
+      PLUGIN_VERSION: 1.4.0-1
   environment:
     KONG_DATABASE: postgres
     KONG_PG_HOST: postgres
@@ -80,6 +80,10 @@ services:
       - ./tests:/opt/tests:ro
     entrypoint: [ "/bin/sh", "-c", "cd /opt/tests && /bin/sh ./configure_jwt_plugin.sh && /bin/sh ./test_jwt_plugin.sh" ]
 
+  httpbin:
+    image: ghcr.io/mccutchen/go-httpbin:2.18.3
+    ports:
+      - "8080"
 volumes:
   pg_data:
   pg_kc_data:

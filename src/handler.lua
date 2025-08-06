@@ -385,6 +385,8 @@ local function do_authentication(conf)
   local algorithm = conf.algorithm or "HS256"
 
   -- Verify "alg"
+  kong.log.debug("Expected JWT algorithm: " .. algorithm)
+  kong.log.debug("Provided JWT algorithm: " .. jwt.header.alg)
   if jwt.header.alg ~= algorithm then
     return false, { status = 403, message = "Invalid algorithm" }
   end
