@@ -6,7 +6,6 @@
 ./makefiles
 .git
 Dockerfile
-Makefile
 README.md
 
 # Byte-compiled / optimized / DLL files

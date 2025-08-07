@@ -52,7 +52,6 @@ If you have any suggestion or comments, please feel free to open an issue on thi
 - [Testing](#testing)
     - [Setup before tests](#setup-before-tests)
     - [Running tests](#running-tests)
-    - [Useful debug commands](#useful-debug-commands)
 
 ## Tested and working for
 
@@ -236,32 +235,18 @@ for some reason the plugin is unable to access these endpoints.
 
 Requires:
 
-* make
 * docker
-
-**Because testing uses docker host networking it does not work on MacOS**
 
 ### Setup before tests
 
 ```bash
-make keycloak-start
+docker compose up -d
 ```
 
 ### Running tests
 
 ```bash
-make test-unit # Unit tests
-make test-integration # Integration tests with postgres
-make test # All test with postgres
-make test-all # All test with supported DBMS versions and multiple versions of kong
-```
-
-### Useful debug commands
-
-```bash
-make kong-log # For proxy logs
-make kong-err-proxy # For proxy error logs
-make kong-err-admin # For admin error logs
+docker compose up tests
 ```
 
 ## Code of Conduct

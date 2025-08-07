@@ -1,7 +1,0 @@
-return {
-  default = {
-    verbose = false,
-    coverage = false,
---    output = "gtest",
-  },
-}
