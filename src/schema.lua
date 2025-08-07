@@ -63,7 +63,7 @@ local schema = {
           { algorithm = {
             type = "string",
             default = "RS256",
-            one_of = { "HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "ES256", "ES384", "ES512" }
+            one_of = { "RS256", "RS384", "RS512", "ES256", "ES384", "ES512" }
           }, },
           { allowed_iss = { type = "set", elements = { type = "string" }, required = true }, },
           { iss_key_grace_period = { type = "number", default = 10, between = { 1, 60 }, }, },

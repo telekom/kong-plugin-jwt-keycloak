@@ -386,7 +386,7 @@ local function do_authentication(conf)
     return false, { status = 401, message = "Token issuer not allowed" }
   end
 
-  local algorithm = conf.algorithm or "HS256"
+  local algorithm = conf.algorithm or "RS256"
 
   -- Verify "alg"
   kong.log.debug("Expected JWT algorithm: " .. algorithm)
