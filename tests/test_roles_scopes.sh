@@ -3,6 +3,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Source environment helpers
+if [ -f ./_env.sh ]; then
+    . ./_env.sh
+fi
+
 # Test role and scope validation
 echo "🧪 Testing role and scope validation..."
 
@@ -32,17 +37,10 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.scope[]=profile" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-sleep 5
-
 # Test that request with valid scope passes
-SCOPE_VALID_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -o /dev/null)
-
-if [ "$SCOPE_VALID_RESPONSE" != "200" ]; then
-  echo "❌ Expected 200 for valid scope, got: $SCOPE_VALID_RESPONSE"
+if ! retry_test_after_plugin_change "Valid scope test" "200" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Valid scope test passed"
 
 # Test 2: Scope validation - require non-existing scope
 echo "🔍 Testing scope validation with non-existing scope..."
@@ -56,17 +54,10 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.scope[]=admin" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-sleep 5
-
 # Test that request with invalid scope is rejected
-SCOPE_INVALID_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -o /dev/null)
-
-if [ "$SCOPE_INVALID_RESPONSE" != "403" ]; then
-  echo "❌ Expected 403 for invalid scope, got: $SCOPE_INVALID_RESPONSE"
+if ! retry_test_after_plugin_change "Invalid scope rejection test" "403" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Invalid scope rejection test passed"
 
 # Test 3: Realm role validation - require existing realm role
 echo "🔍 Testing realm role validation with existing role..."
@@ -80,17 +71,10 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.realm_roles[]=offline_access" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-sleep 5
-
 # Test that request with valid realm role passes
-REALM_ROLE_VALID_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -o /dev/null)
-
-if [ "$REALM_ROLE_VALID_RESPONSE" != "200" ]; then
-  echo "❌ Expected 200 for valid realm role, got: $REALM_ROLE_VALID_RESPONSE"
+if ! retry_test_after_plugin_change "Valid realm role test" "200" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Valid realm role test passed"
 
 # Test 4: Realm role validation - require non-existing realm role
 echo "🔍 Testing realm role validation with non-existing role..."
@@ -104,17 +88,10 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.realm_roles[]=super-admin" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-sleep 5
-
 # Test that request with invalid realm role is rejected
-REALM_ROLE_INVALID_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -o /dev/null)
-
-if [ "$REALM_ROLE_INVALID_RESPONSE" != "403" ]; then
-  echo "❌ Expected 403 for invalid realm role, got: $REALM_ROLE_INVALID_RESPONSE"
+if ! retry_test_after_plugin_change "Invalid realm role rejection test" "403" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Invalid realm role rejection test passed"
 
 # Test 5: Client role validation - require existing client role
 echo "🔍 Testing client role validation with existing role..."
@@ -128,17 +105,10 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.client_roles[]=account:manage-account" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-sleep 5
-
 # Test that request with valid client role passes
-CLIENT_ROLE_VALID_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -o /dev/null)
-
-if [ "$CLIENT_ROLE_VALID_RESPONSE" != "200" ]; then
-  echo "❌ Expected 200 for valid client role, got: $CLIENT_ROLE_VALID_RESPONSE"
+if ! retry_test_after_plugin_change "Valid client role test" "200" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Valid client role test passed"
 
 # Test 6: Client role validation - require non-existing client role
 echo "🔍 Testing client role validation with non-existing role..."
@@ -152,17 +122,10 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.client_roles[]=account:super-admin" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-sleep 5
-
 # Test that request with invalid client role is rejected
-CLIENT_ROLE_INVALID_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $ACCESS_TOKEN" -o /dev/null)
-
-if [ "$CLIENT_ROLE_INVALID_RESPONSE" != "403" ]; then
-  echo "❌ Expected 403 for invalid client role, got: $CLIENT_ROLE_INVALID_RESPONSE"
+if ! retry_test_after_plugin_change "Invalid client role rejection test" "403" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Invalid client role rejection test passed"
 
 # Restore original plugin configuration
 curl -s -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq -r '.data[] | select(.name=="jwt-keycloak") | .id') > /dev/null

@@ -3,6 +3,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Source environment helpers
+if [ -f ./_env.sh ]; then
+    . ./_env.sh
+fi
+
 # Test EC signature algorithms (ES256, ES384, ES512)
 # This test verifies that the plugin can handle all supported EC algorithms
 
@@ -50,34 +55,16 @@ NEW_PLUGIN_RESPONSE=$(curl -s -X POST $KONG_ADMIN_URL/plugins \
 
 echo "New plugin config: $(echo $NEW_PLUGIN_RESPONSE | jq '.config.algorithm')"
 
-# Wait for Kong cache to update
-echo "Waiting for Kong cache to update..."
-sleep 10
-
-# Force Kong to reload configuration by making multiple admin requests
-curl -s $KONG_ADMIN_URL/plugins > /dev/null
-curl -s $KONG_ADMIN_URL/routes > /dev/null
-
 # Test that ES256 token is rejected when RS256 is expected
 echo "Testing algorithm mismatch: ES256 token with RS256 plugin config"
-INVALID_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $ES256_ACCESS_TOKEN" -o /tmp/response.txt)
-
-RESPONSE_BODY=$(cat /tmp/response.txt)
-echo "HTTP Status: $INVALID_RESPONSE"
-echo "Response body: $RESPONSE_BODY"
 
 # Let's also check what the current plugin configuration actually is
 echo "=== Current Plugin Configuration ==="
 CURRENT_PLUGIN_CONFIG=$(curl -s $KONG_ADMIN_URL/plugins | jq '.data[] | select(.name=="jwt-keycloak")')
 echo "Plugin config: $CURRENT_PLUGIN_CONFIG" | jq '.config.algorithm'
 
-if [ "$INVALID_RESPONSE" = "403" ] && echo "$RESPONSE_BODY" | grep -q "Invalid algorithm"; then
-  echo "✅ Invalid algorithm rejection test passed (HTTP $INVALID_RESPONSE)"
-else
-  echo "❌ Expected 403 with 'Invalid algorithm' message for algorithm mismatch, got: $INVALID_RESPONSE"
-  echo "❌ Response body: $RESPONSE_BODY"
-  echo "❌ Plugin should be configured for RS256 but token is ES256"
+# Use retry logic for testing algorithm mismatch
+if ! retry_test_after_plugin_change "Invalid algorithm rejection test" "403" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ES256_ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
 

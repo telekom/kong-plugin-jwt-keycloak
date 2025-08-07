@@ -42,3 +42,42 @@ wait_for_keycloak() {
   echo "Keycloak is not ready after 30 seconds, exiting..."
   exit 1
 }
+
+# Helper function to retry tests after plugin reconfiguration
+# Usage: retry_test_after_plugin_change "test description" "expected_status" "curl_command"
+# Usage: retry_test_after_plugin_change "test description" "expected_status1|expected_status2" "curl_command"
+retry_test_after_plugin_change() {
+  local test_description="$1"
+  local expected_statuses="$2"
+  local curl_command="$3"
+  local retries=3
+  local wait_time=3
+  local attempt=1
+  
+  # Initial waiting period before test runs
+  echo "⏳ Initial waiting period before test (${wait_time}s)..."
+  sleep $wait_time
+  
+  echo "🔄 Testing: $test_description"
+  
+  while [ $attempt -le $retries ]; do
+    echo "   Attempt $attempt/$retries..."
+    
+    local actual_status=$(eval "$curl_command")
+    
+    # Check if actual status matches any of the expected statuses
+    if echo "$expected_statuses" | grep -q "$actual_status"; then
+      echo "✅ $test_description passed (HTTP $actual_status)"
+      return 0
+    fi
+    
+    if [ $attempt -lt $retries ]; then
+      echo "⚠️  Expected one of [$expected_statuses], got $actual_status. Waiting ${wait_time}s before retry..."
+      sleep $wait_time
+      attempt=$((attempt + 1))
+    else
+      echo "❌ $test_description failed after $retries attempts. Expected one of [$expected_statuses], got $actual_status"
+      return 1
+    fi
+  done
+}

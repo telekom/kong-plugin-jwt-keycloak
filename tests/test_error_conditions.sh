@@ -3,6 +3,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Source environment helpers
+if [ -f ./_env.sh ]; then
+    . ./_env.sh
+fi
+
 # Test error conditions and edge cases
 echo "🧪 Testing error conditions and edge cases..."
 
@@ -50,9 +55,6 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.algorithm=$KC_SIGNING_KEY_ALGORITHM" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-# Wait for Kong cache to update
-sleep 5
-
 # Get a token from the real issuer
 REAL_TOKEN=$(curl -s -X POST "$KC_URL/auth/realms/$KC_REALM/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -60,16 +62,10 @@ REAL_TOKEN=$(curl -s -X POST "$KC_URL/auth/realms/$KC_REALM/protocol/openid-conn
   -d "client_secret=$KC_CLIENT_SECRET" \
   -d "grant_type=client_credentials" | jq -r '.access_token')
 
-# Test that the token is rejected due to wrong issuer
-WRONG_ISSUER_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer $REAL_TOKEN" -o /dev/null)
-
-# 401 or 403 are both valid for wrong issuer (depends on where validation fails)
-if [ "$WRONG_ISSUER_RESPONSE" != "401" ] && [ "$WRONG_ISSUER_RESPONSE" != "403" ]; then
-  echo "❌ Expected 401 or 403 for wrong issuer, got: $WRONG_ISSUER_RESPONSE"
+# Test that the token is rejected due to wrong issuer (401 or 403 are both valid)
+if ! retry_test_after_plugin_change "Wrong issuer rejection test" "401|403" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $REAL_TOKEN\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Wrong issuer correctly rejected (HTTP $WRONG_ISSUER_RESPONSE)"
 
 # Test 5: Test OPTIONS request (should be allowed by default)
 echo "🔍 Testing OPTIONS preflight request..."
@@ -84,15 +80,8 @@ curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "config.run_on_preflight=false" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
-sleep 5
-
-OPTIONS_RESPONSE=$(curl -s -w "%{http_code}" -X OPTIONS $KONG_PROXY_URL/example/get -o /dev/null)
-
-if [ "$OPTIONS_RESPONSE" = "200" ] || [ "$OPTIONS_RESPONSE" = "204" ]; then
-  echo "✅ OPTIONS preflight request correctly allowed (HTTP $OPTIONS_RESPONSE)"
-else
-  echo "❌ Expected 200/204 for OPTIONS request, got: $OPTIONS_RESPONSE"
-  echo "❌ OPTIONS requests should be allowed without authentication by default"
+# Test OPTIONS request (should be allowed without authentication)
+if ! retry_test_after_plugin_change "OPTIONS preflight request test" "200|204" "curl -s -w \"%{http_code}\" -X OPTIONS $KONG_PROXY_URL/example/get -o /dev/null"; then
   exit 1
 fi
 
