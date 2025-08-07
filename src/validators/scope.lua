@@ -8,7 +8,7 @@ local function validate_scope(allowed_scopes, jwt_claims)
     end
 
     if jwt_claims == nil or jwt_claims.scope == nil then
-        return nil, "Missing required scope claim"
+        return false, "Missing required scope claim"
     end
 
     for scope in string.gmatch(jwt_claims.scope, "%S+") do
@@ -18,7 +18,7 @@ local function validate_scope(allowed_scopes, jwt_claims)
             end
         end
     end
-    return nil, "Missing required scope"
+    return false, "Missing required scope"
 end
 
 return {

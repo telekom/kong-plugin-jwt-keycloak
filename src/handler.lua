@@ -50,7 +50,7 @@ end
 
 -------------------------------------------------------------------------------
 -- custom helper function of the extended plugin "jwt-keycloak"
--- --> this is not contained in the official "jwt" pluging
+-- --> this is not contained in the official "jwt" plugin
 -------------------------------------------------------------------------------
 local function custom_helper_table_to_string(tbl)
   local result = ""
@@ -304,7 +304,7 @@ local function set_consumer(consumer, credential, token)
     set_header(constants.HEADERS.ANONYMOUS, true)
   end
 
-  ngx.ctx.authenticated_jwt_token = token  -- backward compatibilty only
+  ngx.ctx.authenticated_jwt_token = token  -- backward compatibility only
   kong.ctx.shared.authenticated_jwt_token = token -- TODO: wrap in a PDK function?
 end
 
@@ -392,7 +392,7 @@ local function do_authentication(conf)
   kong.log.debug("Expected JWT algorithm: " .. algorithm)
   kong.log.debug("Provided JWT algorithm: " .. jwt.header.alg)
   if jwt.header.alg ~= algorithm then
-    return false, { status = 403, message = "Invalid algorithm" }
+    return false, { status = 401, message = "Invalid algorithm" }
   end
 
   -- Now verify the JWT signature

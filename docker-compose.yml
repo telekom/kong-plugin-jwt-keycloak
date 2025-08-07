@@ -77,13 +77,20 @@ services:
       - KC_HTTP_ENABLED=true
 
   tests:
-    image: badouralix/curl-jq
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
     depends_on:
       - kong
       - kc
       - httpbin
     volumes:
       - ./tests:/opt/tests:ro
+      - ./src:/opt/kong-plugin-jwt-keycloak/src:ro
+      - ./spec:/opt/kong-plugin-jwt-keycloak/spec:ro
+    environment:
+      - LUA_PATH=/opt/kong-plugin-jwt-keycloak/src/?.lua;/opt/kong-plugin-jwt-keycloak/?.lua;;
+      - LUA_CPATH=/usr/local/lib/lua/5.1/?.so;;
     entrypoint: [ "/bin/sh", "-c", "cd /opt/tests && /bin/sh ./run_tests.sh" ]
 
   httpbin:

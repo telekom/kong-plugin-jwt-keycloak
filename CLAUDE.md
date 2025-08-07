@@ -17,7 +17,7 @@ Key features:
 - Supports rotating public keys
 - Authorization based on token claims (scope, realm_access, resource_access)
 - Matches Keycloak users/clients to Kong consumers
-- Supports EC256 signature algorithm (feature branch)
+- Supports EC256/384/512 signature algorithms (feature branch)
 
 ## Development Environment
 
@@ -27,14 +27,30 @@ The project uses Docker containers for development and testing. The development 
 - Keycloak server for authentication
 - Test utilities
 
+The repository includes a reference to the original Kong source code:
+- `.original-kong/`: Contains the original Kong 3.9.1 repository for reference
+
 ## Architecture
 
 The plugin follows Kong's plugin architecture:
 - `handler.lua`: Main entry point that handles request processing
+  - Extends the official Kong JWT plugin with Keycloak-specific validation
+  - Implements token signature validation using Keycloak public keys
+  - Performs role, scope, and claim validation
+  - Manages consumer matching and authentication
 - `schema.lua`: Defines configuration schema for the plugin
+  - Defines all configurable parameters for the plugin
+  - Sets default values and validation rules
 - `keycloak_keys.lua`: Retrieves and manages Keycloak public keys
+  - Fetches public keys from Keycloak's well-known endpoints
+  - Manages key caching and updates
 - `key_conversion.lua`: Converts Keycloak JWK format to PEM format
+  - Supports both RSA and EC (Elliptic Curve) key formats
+  - Handles different EC curves (P-256, P-384, P-521)
 - `validators/`: Directory containing validation logic for claims, roles, scopes
+  - `issuers.lua`: Validates the token issuer against allowed issuers
+  - `roles.lua`: Validates realm roles and client roles
+  - `scope.lua`: Validates token scopes
 
 ## Common Commands
 
@@ -116,6 +132,11 @@ docker-compose up tests
 ## Version Compatibility
 
 The plugin supports these version combinations:
-- Kong: 2.8.1 and higher (3.0.0, 3.1.0, 3.2.2, 3.3.0, 3.4.0)
+- Kong: 2.8.1 and higher (3.0.0, 3.1.0, 3.2.2, 3.3.0, 3.4.0, 3.9.1)
 - Postgres: 12.x and higher
-- Keycloak: 9.0.3 (RHSSO-7.4) and 15.0.2 (RHSSO-7.5)
+- Keycloak: 9.0.3 (RHSSO-7.4), 15.0.2 (RHSSO-7.5), and 26.2.0
+
+## Branch Information
+
+- Current branch `feature/ec-support` adds support for Elliptic Curve signature algorithms (ES256, ES384, ES512)
+- Main branch `main` is the stable version of the plugin
