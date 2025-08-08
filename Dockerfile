@@ -13,7 +13,7 @@ USER root
 # Starting from kong 3.2 they move from alpine to debian .. so conditional install logic is needed
 ARG DISTO_ADDONS="zip unzip"
 RUN if [ -x "$(command -v apk)" ]; then apk add --no-cache $DISTO_ADDONS; \
-    elif [ -x "$(command -v apt-get)" ]; then apt-get update && apt-get install $DISTO_ADDONS; \
+    elif [ -x "$(command -v apt-get)" ]; then apt-get update && apt-get install -y $DISTO_ADDONS; \
     fi
 WORKDIR /tmp
 
@@ -35,7 +35,7 @@ USER root
 
 ARG FIX_DEPENDENCIES="gcc musl-dev"
 RUN if [ -x "$(command -v apk)" ]; then apk add --no-cache $FIX_DEPENDENCIES; \
-    elif [ -x "$(command -v apt-get)" ]; then apt-get update && apt-get install $FIX_DEPENDENCIES; \
+    elif [ -x "$(command -v apt-get)" ]; then apt-get update && apt-get install -y $FIX_DEPENDENCIES; \
     fi; \
     luarocks install luaossl OPENSSL_DIR=/usr/local/kong CRYPTO_DIR=/usr/local/kong; \
     if [ -x "$(command -v apk)" ]; then apk del $FIX_DEPENDENCIES; \
