@@ -7,7 +7,7 @@ x-kong-image: &kong-image
     context: .
     dockerfile: Dockerfile
     args:
-      KONG_VERSION: 3.9.1
+      KONG_VERSION: ${KONG_VERSION:-3.9.1}
       PLUGIN_VERSION: 1.4.0-1
   environment:
     KONG_DATABASE: postgres
@@ -56,7 +56,7 @@ services:
     volumes:
       - pg_kc_data:/var/lib/postgresql/data
   kc:
-    image: quay.io/keycloak/keycloak:26.2
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.2}
     depends_on:
       - kc-pg
     ports:
