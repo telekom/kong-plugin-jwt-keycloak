@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
+FROM badouralix/curl-jq:latest
+
+# Install Lua and LuaRocks
+RUN apk add --no-cache \
+    lua5.1 \
+    lua5.1-dev \
+    luarocks5.1 \
+    gcc \
+    musl-dev \
+    make \
+    unzip
+
+# Install Busted and dependencies for unit testing
+RUN /usr/bin/luarocks-5.1 install busted
+RUN /usr/bin/luarocks-5.1 install luacov
+
+# Set the working directory
+WORKDIR /opt/tests
+
+# Set environment variables for Lua path (will use mounted volumes)
+ENV LUA_PATH="/opt/kong-plugin-jwt-keycloak/src/?.lua;/opt/kong-plugin-jwt-keycloak/?.lua;;"
+ENV LUA_CPATH="/usr/local/lib/lua/5.1/?.so;;"
+
+# Entry point
+ENTRYPOINT ["/bin/sh", "-c", "cd /opt/tests && chmod +x /opt/tests/*.sh && /bin/sh ./run_tests.sh"]

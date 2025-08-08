@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 local constants = require "kong.constants"
 local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 local kong_meta = require "kong.meta"
@@ -36,7 +40,8 @@ local function custom_base64_decode(input)
   local remainder = #input % 4
   if remainder > 0 then
     local padlen = 4 - remainder
-    input = input .. rep("=", padlen)
+    print("Padding input with " .. padlen .. " characters")
+    input = input .. string.rep("=", padlen)
   end
 
   input = input:gsub("-", "+"):gsub("_", "/")
@@ -45,7 +50,7 @@ end
 
 -------------------------------------------------------------------------------
 -- custom helper function of the extended plugin "jwt-keycloak"
--- --> this is not contained in the official "jwt" pluging
+-- --> this is not contained in the official "jwt" plugin
 -------------------------------------------------------------------------------
 local function custom_helper_table_to_string(tbl)
   local result = ""
@@ -299,7 +304,7 @@ local function set_consumer(consumer, credential, token)
     set_header(constants.HEADERS.ANONYMOUS, true)
   end
 
-  ngx.ctx.authenticated_jwt_token = token  -- backward compatibilty only
+  ngx.ctx.authenticated_jwt_token = token  -- backward compatibility only
   kong.ctx.shared.authenticated_jwt_token = token -- TODO: wrap in a PDK function?
 end
 
@@ -371,24 +376,23 @@ local function do_authentication(conf)
   end
 
   -- Decode token to find out who the consumer is
-  local jwt, err = jwt_decoder:new(token)
-  if err then
+  local jwt, jwt_err = jwt_decoder:new(token)
+  if jwt_err then
     return false, { status = 401, message = "Bad token; " .. tostring(err) }
   end
-
-  local claims = jwt.claims
-  local header = jwt.header
 
   -- Verify that the issuer is allowed
   if not validate_issuer(conf.allowed_iss, jwt.claims) then
     return false, { status = 401, message = "Token issuer not allowed" }
   end
 
-  local algorithm = conf.algorithm or "HS256"
+  local algorithm = conf.algorithm or "RS256"
 
   -- Verify "alg"
+  kong.log.debug("Expected JWT algorithm: " .. algorithm)
+  kong.log.debug("Provided JWT algorithm: " .. jwt.header.alg)
   if jwt.header.alg ~= algorithm then
-    return false, { status = 403, message = "Invalid algorithm" }
+    return false, { status = 401, message = "Invalid algorithm" }
   end
 
   -- Now verify the JWT signature
@@ -407,7 +411,7 @@ local function do_authentication(conf)
 
   -- Verify the JWT registered claims
   if conf.maximum_expiration ~= nil and conf.maximum_expiration > 0 then
-    local ok, errors = jwt:check_maximum_expiration(conf.maximum_expiration)
+    local ok, _ = jwt:check_maximum_expiration(conf.maximum_expiration)
     if not ok then
       return false, { status = 403, message = "Token claims invalid: " .. custom_helper_table_to_string(errors) }
     end
@@ -415,7 +419,7 @@ local function do_authentication(conf)
 
   -- Match consumer
   if conf.consumer_match then
-    local ok, err = custom_match_consumer(conf, jwt)
+    local ok, _ = custom_match_consumer(conf, jwt)
     if not ok then
       return ok, err
     end

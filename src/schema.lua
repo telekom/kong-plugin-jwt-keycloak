@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 local typedefs = require "kong.db.schema.typedefs"
 
 
@@ -56,7 +60,11 @@ local schema = {
             default = { "authorization" },
           }, },
 
-          { algorithm = {  type = "string", default = "RS256" }, },
+          { algorithm = {
+            type = "string",
+            default = "RS256",
+            one_of = { "RS256", "RS384", "RS512", "ES256", "ES384", "ES512" }
+          }, },
           { allowed_iss = { type = "set", elements = { type = "string" }, required = true }, },
           { iss_key_grace_period = { type = "number", default = 10, between = { 1, 60 }, }, },
           { well_known_template = { type = "string", default = "%s/.well-known/openid-configuration" }, },

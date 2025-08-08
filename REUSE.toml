@@ -1,0 +1,16 @@
+version = 1
+SPDX-PackageName = "Kong Plugin JWT Keycloak"
+SPDX-PackageSupplier = "Deutsche Telekom AG <opensource@telekom.de>"
+SPDX-PackageDownloadLocation = "https://github.com/telekom/kong-plugin-jwt-keycloak"
+
+[[annotations]]
+path = [".gitignore", ".gitmodules", ".DS_Store"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright 2025 Deutsche Telekom AG"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["tests/schemas/*"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright 2025 Deutsche Telekom AG"
+SPDX-License-Identifier = "Apache-2.0"

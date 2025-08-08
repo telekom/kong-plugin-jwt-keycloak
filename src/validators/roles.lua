@@ -1,10 +1,14 @@
+-- SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+--
+-- SPDX-License-Identifier: Apache-2.0
+
 local function validate_client_roles(allowed_client_roles, jwt_claims)
     if allowed_client_roles == nil or table.getn(allowed_client_roles) == 0 then
         return true
     end
 
     if jwt_claims == nil or jwt_claims.resource_access == nil then
-        return nil, "Missing required resource_access claim"
+        return false, "Missing required resource_access claim"
     end
 
     for _, allowed_client_role in pairs(allowed_client_roles) do
@@ -23,7 +27,7 @@ local function validate_client_roles(allowed_client_roles, jwt_claims)
         end
     end
 
-    return nil, "Missing required role"
+    return false, "Missing required role"
 end
 
 local function validate_roles(allowed_roles, jwt_claims)
@@ -32,7 +36,7 @@ local function validate_roles(allowed_roles, jwt_claims)
     end
 
     if jwt_claims.azp == nil then
-        return nil, "Missing required azp claim"
+        return false, "Missing required azp claim"
     end
 
     local tmp_allowed = {}
@@ -49,7 +53,7 @@ local function validate_realm_roles(allowed_realm_roles, jwt_claims)
     end
 
     if jwt_claims == nil or jwt_claims.realm_access == nil or jwt_claims.realm_access.roles == nil then
-        return nil, "Missing required realm_access.roles claim"
+        return false, "Missing required realm_access.roles claim"
     end
 
     for _, curr_claim_role in pairs(jwt_claims.realm_access.roles) do
@@ -60,7 +64,7 @@ local function validate_realm_roles(allowed_realm_roles, jwt_claims)
         end
     end
 
-    return nil, "Missing required realm role"
+    return false, "Missing required realm role"
 end
 
 return {

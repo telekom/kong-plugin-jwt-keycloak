@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
 .idea
 *.rock
 venv
@@ -5,3 +9,4 @@ venv
 __pycache__/
 *.py[cod]
 *$py.class
+/.env

@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom AG
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: test
+permissions:
+  contents: read
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-plugins:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        kong_version: [ "2.8.3", "3.0", "3.4", "3.5", "3.8", "3.9.1" ]
+        keycloak_version: [ "26.0", "26.3" ]
+    env:
+      KONG_VERSION: ${{ matrix.kong_version }}
+      KEYCLOAK_VERSION: ${{ matrix.keycloak_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      - name: Run Tests
+        run: docker compose build --no-cache && docker compose up --exit-code-from tests tests
