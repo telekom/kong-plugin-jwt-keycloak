@@ -37,7 +37,9 @@ ARG FIX_DEPENDENCIES="gcc musl-dev"
 RUN if [ -x "$(command -v apk)" ]; then apk add --no-cache $FIX_DEPENDENCIES; \
     elif [ -x "$(command -v apt-get)" ]; then apt-get update && apt-get install -y $FIX_DEPENDENCIES; \
     fi; \
-    luarocks install luaossl OPENSSL_DIR=/usr/local/kong CRYPTO_DIR=/usr/local/kong; \
+    # --only-server fix based on https://support.konghq.com/support/s/article/LuaRocks-Error-main-function-has-more-than-65536-constants
+    luarocks --only-server https://raw.githubusercontent.com/rocks-moonscript-org/moonrocks-mirror/daab2726276e3282dc347b89a42a5107c3500567 \
+    install luaossl OPENSSL_DIR=/usr/local/kong CRYPTO_DIR=/usr/local/kong; \
     if [ -x "$(command -v apk)" ]; then apk del $FIX_DEPENDENCIES; \
     elif [ -x "$(command -v apt-get)" ]; then apt-get remove --purge -y $FIX_DEPENDENCIES; \
     fi
