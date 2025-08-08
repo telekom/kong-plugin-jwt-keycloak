@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        kong_version: [ 2.8.3, 3.4, 3.5, 3.8, 3.9.1 ]
-        keycloak_version: [ 23.0, 24.0, 25.0, 26.0, 26.3 ]
+        kong_version: [ 2.8, 2.8.3, 3.4, 3.5, 3.8, 3.9.1 ]
+        keycloak_version: [ 22.0, 23.0, 24.0, 25.0, 26.0, 26.3 ]
     env:
       KONG_VERSION: ${{ matrix.kong_version }}
       KEYCLOAK_VERSION: ${{ matrix.keycloak_version }}
