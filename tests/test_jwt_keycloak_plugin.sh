@@ -3,6 +3,11 @@
 
 # SPDX-License-Identifier: Apache-2.0
 
+# Source environment helpers
+if [ -f ./_env.sh ]; then
+    . ./_env.sh
+fi
+
 TOKEN_ENDPOINT="$KC_URL/auth/realms/$KC_REALM/protocol/openid-connect/token"
 
 ACCESS_TOKEN=$(curl -s -X POST $TOKEN_ENDPOINT \
@@ -17,11 +22,14 @@ if [ -z "$ACCESS_TOKEN" ]; then
   exit 1
 fi
 
-# wait for 5s for the Kong route cache to be updated
-echo "Waiting for Kong route cache to update..."
-sleep 5
+# Test the JWT token with retry mechanism
+echo "🧪 Testing JWT token validation..."
+if ! retry_test_after_plugin_change "JWT token validation test" "200" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ACCESS_TOKEN\" -o /dev/null"; then
+  exit 1
+fi
 
-RESPONSE=$(curl -s -v -X GET $KONG_PROXY_URL/example/get \
+# Get the full response for debugging/verification
+RESPONSE=$(curl -s -X GET $KONG_PROXY_URL/example/get \
   -H "Authorization: Bearer $ACCESS_TOKEN")
 
 echo "Response:"

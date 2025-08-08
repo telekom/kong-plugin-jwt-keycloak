@@ -13,35 +13,21 @@ echo "🧪 Testing error conditions and edge cases..."
 
 # Test 1: Request without token should return 401
 echo "🔍 Testing request without token..."
-NO_TOKEN_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get -o /dev/null)
-
-if [ "$NO_TOKEN_RESPONSE" != "401" ]; then
-  echo "❌ Expected 401 for request without token, got: $NO_TOKEN_RESPONSE"
+if ! retry_test_after_plugin_change "Request without token test" "401" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -o /dev/null"; then
   exit 1
 fi
-echo "✅ Request without token correctly returns 401"
 
 # Test 2: Request with invalid token should return 401
 echo "🔍 Testing request with invalid token..."
-INVALID_TOKEN_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer invalid.token.here" -o /dev/null)
-
-if [ "$INVALID_TOKEN_RESPONSE" != "401" ]; then
-  echo "❌ Expected 401 for invalid token, got: $INVALID_TOKEN_RESPONSE"
+if ! retry_test_after_plugin_change "Request with invalid token test" "401" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer invalid.token.here\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Request with invalid token correctly returns 401"
 
-# Test 3: Request with expired token
+# Test 3: Request with malformed token should return 401
 echo "🔍 Testing request with malformed token..."
-MALFORMED_TOKEN_RESPONSE=$(curl -s -w "%{http_code}" -X GET $KONG_PROXY_URL/example/get \
-  -H "Authorization: Bearer not-a-jwt-token" -o /dev/null)
-
-if [ "$MALFORMED_TOKEN_RESPONSE" != "401" ]; then
-  echo "❌ Expected 401 for malformed token, got: $MALFORMED_TOKEN_RESPONSE"
+if ! retry_test_after_plugin_change "Request with malformed token test" "401" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer not-a-jwt-token\" -o /dev/null"; then
   exit 1
 fi
-echo "✅ Request with malformed token correctly returns 401"
 
 # Test 4: Test with wrong issuer
 echo "🔍 Testing wrong issuer rejection..."
