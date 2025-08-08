@@ -11,7 +11,7 @@ FROM docker.io/kong:${KONG_VERSION} AS builder
 USER root
 
 # Starting from kong 3.2 they move from alpine to debian .. so conditional install logic is needed
-ARG DISTO_ADDONS="zip"
+ARG DISTO_ADDONS="zip unzip"
 RUN if [ -x "$(command -v apk)" ]; then apk add --no-cache $DISTO_ADDONS; \
     elif [ -x "$(command -v apt-get)" ]; then apt-get update && apt-get install $DISTO_ADDONS; \
     fi
