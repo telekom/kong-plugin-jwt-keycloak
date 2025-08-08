@@ -12,7 +12,7 @@ version combinations**
 > The official author of the plugin no longer maintains it since 24.08.2021  
 > Details see: <https://github.com/gbbirkisson/kong-plugin-jwt-keycloak/blob/master/README.md>
 
-A plugin for the [Kong API Gateway](https://konghq.com/solutions/gateway/) to validate access tokens issued
+A plugin for the [Kong Gateway](https://github.com/Kong/kong) to validate access tokens issued
 by [Keycloak](https://www.keycloak.org/). It uses
 the [Well-Known Uniform Resource Identifiers](https://tools.ietf.org/html/rfc5785) provided
 by [Keycloak](https://www.keycloak.org/) to load [JWK](https://tools.ietf.org/html/rfc7517) public keys from issuers
@@ -57,30 +57,23 @@ If you have any suggestion or comments, please feel free to open an issue on thi
 
 There are a few limitations about testing combinations:
 
-* Kong only provides a limited set off their lua code on luarocks  
-  <https://luarocks.org/modules/kong/kong>  
-  for this reason currently only these version combinations can be validated
-* Redhat / Jboss / Keycloak provides also not all latest updates of RHSSO base versions of keycloak
-  <https://quay.io/repository/keycloak/keycloak?tab=tags>  
-  For this reason not the latest patch versions on the contained rhsso product versions can be used for testing  
-  <https://access.redhat.com/solutions/3296901>
+* Due to the nature of the test setup, we can only test a multitude of Kong versions with a limited set of 
+  rather recent Keycloak versions.
 
-| Kong Version | Tests passing |
-|--------------|:-------------:|
-| 2.8.1        |       ✅       |
-| 3.0.0        |       ✅       |
-| 3.1.0        |       ✅       |
-| 3.2.2        |       ✅       |
-| 3.3.0        |       ✅       |
-| 3.4.0        |       ✅       |
-| 3.9.1        |       ✅       |
-
-| Keycloak Version   |                                  Tests passing                                   |
-|--------------------|:--------------------------------------------------------------------------------:|
-| 9.0.3  (RHSSO-7.4) |                                        ✅                                         |
-| 15.0.2 (RHSSO-7.5) |                                        ✅                                         |
-| 18.0.2 (RHSSO-7.6) | ✖️ [Issue](https://github.com/telekom-digioss/kong-plugin-jwt-keycloak/issues/5) |
-| 26.2.0             |                                        ✅                                         |
+| Kong Version | Keycloak Version | Passing |
+|--------------|:----------------:|:-------:|
+| 2.8.3        |       26.0       |    ✅    |
+| 2.8.3        |       26.3       |    ✅    |
+| 3.0          |       26.0       |    ✅    |
+| 3.0          |       26.3       |    ✅    |
+| 3.4          |       26.0       |    ✅    |
+| 3.4          |       26.3       |    ✅    |
+| 3.5          |       26.0       |    ✅    |
+| 3.5          |       26.3       |    ✅    |
+| 3.8          |       26.0       |    ✅    |
+| 3.8          |       26.3       |    ✅    |
+| 3.9.1        |       26.0       |    ✅    |
+| 3.9.1        |       26.3       |    ✅    |
 
 ## Installation
 
