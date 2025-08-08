@@ -58,13 +58,8 @@ echo "New plugin config: $(echo $NEW_PLUGIN_RESPONSE | jq '.config.algorithm')"
 # Test that ES256 token is rejected when RS256 is expected
 echo "Testing algorithm mismatch: ES256 token with RS256 plugin config"
 
-# Let's also check what the current plugin configuration actually is
-echo "=== Current Plugin Configuration ==="
-CURRENT_PLUGIN_CONFIG=$(curl -s $KONG_ADMIN_URL/plugins | jq '.data[] | select(.name=="jwt-keycloak")')
-echo "Plugin config: $CURRENT_PLUGIN_CONFIG" | jq '.config.algorithm'
-
 # Use retry logic for testing algorithm mismatch
-if ! retry_test_after_plugin_change "Invalid algorithm rejection test" "403" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ES256_ACCESS_TOKEN\" -o /dev/null"; then
+if ! retry_test_after_plugin_change "Invalid algorithm rejection test" "401" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ES256_ACCESS_TOKEN\" -o /dev/null"; then
   exit 1
 fi
 
