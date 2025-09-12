@@ -37,6 +37,7 @@ build = {
     ["kong.plugins."..plugin_name..".schema"]             = "src/schema.lua",
     ["kong.plugins."..plugin_name..".keycloak_keys"]      = "src/keycloak_keys.lua",
     ["kong.plugins."..plugin_name..".key_conversion"]     = "src/key_conversion.lua",
+    ["kong.plugins."..plugin_name..".gateway.securitylog"] = "src/gateway/securitylog.lua",
     ["kong.plugins."..plugin_name..".validators.issuers"] = "src/validators/issuers.lua",
     ["kong.plugins."..plugin_name..".validators.roles"]   = "src/validators/roles.lua",
     ["kong.plugins."..plugin_name..".validators.scope"]   = "src/validators/scope.lua",
