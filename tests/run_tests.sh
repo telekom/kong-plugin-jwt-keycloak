@@ -91,3 +91,12 @@ else
     echo "Error: test_roles_scopes.sh not found"
     exit 1
 fi
+
+# Test 5: Test security logging functionality
+echo "🧪 Phase 5: Testing security logging..."
+if [ -f ./test_security_logging.sh ]; then
+    . ./test_security_logging.sh
+else
+    echo "Error: test_security_logging.sh not found"
+    exit 1
+fi

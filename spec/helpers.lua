@@ -16,7 +16,7 @@ local mock_kong = {
   }
 }
 
--- Mock ngx global with base64 functions
+-- Mock ngx global with base64 functions and security logging support
 local mock_ngx = {
   encode_base64 = function(s)
     -- Simple base64 encoding for tests (this is a minimal implementation)
@@ -56,7 +56,13 @@ local mock_ngx = {
     end
     
     return result
-  end
+  end,
+  
+  -- Mock ngx.var for security logging
+  var = {},
+  
+  -- Mock ngx.DEBUG constant
+  DEBUG = 7
 }
 
 -- Mock functions for testing
@@ -116,12 +122,21 @@ local mock_url = {
   end
 }
 
+-- Mock errlog for security logging
+local mock_errlog = {
+  raw_log = function(level, message)
+    -- Mock implementation - in tests, we can capture these calls
+    -- print("SECURITY LOG [" .. level .. "]: " .. message)
+  end
+}
+
 function helpers.setup_socket_mocks()
   package.loaded["socket.http"] = mock_http
   package.loaded["ssl.https"] = mock_https
   package.loaded["ltn12"] = mock_ltn12
   package.loaded["socket.url"] = mock_url
   package.loaded["cjson.safe"] = mock_cjson_safe
+  package.loaded["ngx.errlog"] = mock_errlog
 end
 
 function helpers.teardown_socket_mocks()
@@ -130,6 +145,7 @@ function helpers.teardown_socket_mocks()
   package.loaded["ltn12"] = nil
   package.loaded["socket.url"] = nil
   package.loaded["cjson.safe"] = nil
+  package.loaded["ngx.errlog"] = nil
 end
 
 return helpers
