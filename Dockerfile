@@ -44,7 +44,7 @@ RUN if [ -x "$(command -v apk)" ]; then apk add --no-cache $FIX_DEPENDENCIES; \
     elif [ -x "$(command -v apt-get)" ]; then apt-get remove --purge -y $FIX_DEPENDENCIES; \
     fi
 
-ARG PLUGIN_VERSION=1.4.0-1
+ARG PLUGIN_VERSION=1.5.0-1
 RUN luarocks install /tmp/kong-plugin-jwt-keycloak-${PLUGIN_VERSION}.all.rock
 
 USER kong
