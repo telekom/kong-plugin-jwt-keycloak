@@ -13,6 +13,10 @@ local mock_kong = {
     err = function(...) end,
     info = function(...) end,
     warn = function(...) end
+  },
+  -- ctx.shared is used by gateway/securitylog.lua
+  ctx = {
+    shared = {}
   }
 }
 
@@ -22,20 +26,20 @@ local mock_ngx = {
     -- Simple base64 encoding for tests (this is a minimal implementation)
     local chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     local result = ''
-    local bytes = {s:byte(1, -1)}
-    
+    local bytes = { s:byte(1, -1) }
+
     for i = 1, #bytes, 3 do
-      local b1, b2, b3 = bytes[i], bytes[i+1], bytes[i+2]
+      local b1, b2, b3 = bytes[i], bytes[i + 1], bytes[i + 2]
       local n = (b1 or 0) * 65536 + (b2 or 0) * 256 + (b3 or 0)
       result = result .. chars:sub(math.floor(n / 262144) + 1, math.floor(n / 262144) + 1)
       result = result .. chars:sub((math.floor(n / 4096) % 64) + 1, (math.floor(n / 4096) % 64) + 1)
       result = result .. (b2 and chars:sub((math.floor(n / 64) % 64) + 1, (math.floor(n / 64) % 64) + 1) or '=')
       result = result .. (b3 and chars:sub((n % 64) + 1, (n % 64) + 1) or '=')
     end
-    
+
     return result
   end,
-  
+
   decode_base64 = function(s)
     -- Simple base64 decoding for tests
     local chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -43,30 +47,32 @@ local mock_ngx = {
     for i = 1, #chars do
       lookup[chars:byte(i)] = i - 1
     end
-    
+
     s = s:gsub('=+$', '')
     local result = ''
-    
+
     for i = 1, #s, 4 do
-      local a, b, c, d = s:byte(i, i+3)
+      local a, b, c, d = s:byte(i, i + 3)
       local n = (lookup[a] or 0) * 262144 + (lookup[b] or 0) * 4096 + (lookup[c] or 0) * 64 + (lookup[d] or 0)
       result = result .. string.char(math.floor(n / 65536) % 256)
       if c then result = result .. string.char(math.floor(n / 256) % 256) end
       if d then result = result .. string.char(n % 256) end
     end
-    
+
     return result
   end,
-  
+
   -- Mock ngx.var for security logging
   var = {},
-  
+
   -- Mock ngx.DEBUG constant
   DEBUG = 7
 }
 
 -- Mock functions for testing
 function helpers.setup_kong_mock()
+  -- reset ctx.shared for each test to ensure isolation
+  mock_kong.ctx = { shared = {} }
   _G.kong = mock_kong
   _G.ngx = mock_ngx
 end
@@ -81,7 +87,7 @@ local mock_cjson_safe = {
   decode = function(data)
     -- Simple JSON decoder for tests
     if data == '{"test": "data"}' then
-      return {test = "data"}
+      return { test = "data" }
     end
     return nil, "parse error"
   end
