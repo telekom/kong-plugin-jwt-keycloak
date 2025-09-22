@@ -32,14 +32,14 @@ wait_for_kong() {
 # wait for Keycloak to be ready or timeout
 wait_for_keycloak() {
   echo "Waiting for Keycloak to be ready..."
-  for i in $(seq 1 30); do
+  for i in $(seq 1 45); do
     if test $(curl -s -o /dev/null -w '%{http_code}' $KC_URL/auth/realms/master/.well-known/openid-configuration) -eq 200; then
       echo "Keycloak endpoint is ready!"
       return 0
     fi
     sleep 1
   done
-  echo "Keycloak is not ready after 30 seconds, exiting..."
+  echo "Keycloak is not ready after 45 seconds, exiting..."
   exit 1
 }
 
