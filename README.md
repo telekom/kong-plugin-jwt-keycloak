@@ -160,7 +160,7 @@ curl -X POST http://localhost:8001/plugins \
 | config.run_on_preflight                | no      | `true`            | A boolean value that indicates whether the plugin should run (and try to authenticate) on `OPTIONS` preflight requests, if set to false then `OPTIONS` requests will always be allowed.                                                                                                                                                                                                  |
 | config.header_names                    | no      | `authorization`   | A list of HTTP header names that Kong will inspect to retrieve JWTs. `OPTIONS` requests will always be allowed.                                                                                                                                                                                                                                                                          |
 | config.maximum_expiration              | no      | `0`               | An integer limiting the lifetime of the JWT to `maximum_expiration` seconds in the future. Any JWT that has a longer lifetime will rejected (HTTP 403). If this value is specified, `exp` must be specified as well in the `claims_to_verify` property. The default value of `0` represents an indefinite period. Potential clock skew should be considered when configuring this value. |
-| config.algorithm                       | no      | `RS256`           | The algorithm used to verify the token’s signature. Can be `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, or `ES512`.                                                                                                                                                                                                                                                                      |
+| config.algorithm                       | no      | `RS256`           | A list of allowed signing algorithms used to verify the token's signature. Can include `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, or `ES512`. Multiple algorithms can be specified to support tokens signed with different algorithms.                                                                                                                                                 |
 | config.allowed_iss                     | yes     |                   | A list of allowed issuers for this route/service/api. Can be specified as a `string` or as a [Pattern](http://lua-users.org/wiki/PatternsTutorial).                                                                                                                                                                                                                                      |
 | config.iss_key_grace_period            | no      | `10`              | An integer that sets the number of seconds until public keys for an issuer can be updated after writing new keys to the cache. This is a guard so that the Kong cache will not invalidate every time a token signed with an invalid public key is sent to the plugin.                                                                                                                    |
 | config.well_known_template             | false   | *see description* | A string template that the well known endpoint for keycloak is created from. String formatting is applied on the template and `%s` is replaced by the issuer of the token. Default value is `%s/.well-known/openid-configuration`                                                                                                                                                        |
@@ -188,6 +188,17 @@ curl -X POST http://localhost:8001/services/httpbin-anything/plugins \
 
 curl -X POST http://localhost:8001/services/httpbin-anything/routes \
     --data "paths=/" 
+```
+
+To support multiple signing algorithms at once, you can specify multiple values:
+
+```bash
+curl -X POST http://localhost:8001/services/httpbin-anything/plugins \
+    --data "name=jwt-keycloak" \
+    --data "config.allowed_iss=http://localhost:8080/auth/realms/master" \
+    --data "config.algorithm[]=RS256" \
+    --data "config.algorithm[]=RS384" \
+    --data "config.algorithm[]=ES256"
 ```
 
 Then you can call the API:

@@ -74,8 +74,17 @@ else
     exit 1
 fi
 
-# Test 3: Test error conditions
-echo "🧪 Phase 3: Testing error conditions..."
+# Test 3: Test multiple algorithms
+echo "🧪 Phase 3: Testing multiple algorithm support..."
+if [ -f ./test_multiple_algorithms.sh ]; then
+    . ./test_multiple_algorithms.sh
+else
+    echo "Error: test_multiple_algorithms.sh not found"
+    exit 1
+fi
+
+# Test 4: Test error conditions
+echo "🧪 Phase 4: Testing error conditions..."
 if [ -f ./test_error_conditions.sh ]; then
     . ./test_error_conditions.sh
 else
@@ -83,8 +92,8 @@ else
     exit 1
 fi
 
-# Test 4: Test roles and scopes
-echo "🧪 Phase 4: Testing roles and scopes..."
+# Test 5: Test roles and scopes
+echo "🧪 Phase 5: Testing roles and scopes..."
 if [ -f ./test_roles_scopes.sh ]; then
     . ./test_roles_scopes.sh
 else
@@ -92,8 +101,8 @@ else
     exit 1
 fi
 
-# Test 5: Test security logging functionality
-echo "🧪 Phase 5: Testing security logging..."
+# Test 6: Test security logging functionality
+echo "🧪 Phase 6: Testing security logging..."
 if [ -f ./test_security_logging.sh ]; then
     . ./test_security_logging.sh
 else

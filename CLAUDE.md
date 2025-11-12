@@ -17,7 +17,8 @@ Key features:
 - Supports rotating public keys
 - Authorization based on token claims (scope, realm_access, resource_access)
 - Matches Keycloak users/clients to Kong consumers
-- Supports EC256/384/512 signature algorithms (feature branch)
+- Supports multiple signature algorithms simultaneously (RS256/384/512, ES256/384/512)
+- Backward compatible with single algorithm configuration
 
 ## Development Environment
 
@@ -138,5 +139,23 @@ The plugin supports these version combinations:
 
 ## Branch Information
 
-- Current branch `feature/ec-support` adds support for Elliptic Curve signature algorithms (ES256, ES384, ES512)
+- Current branch `feat/multiple-signing-algs` adds support for configuring multiple signing algorithms simultaneously
+- Previously `feature/ec-support` added support for Elliptic Curve signature algorithms (ES256, ES384, ES512)
 - Main branch `main` is the stable version of the plugin
+
+## Test Coverage
+
+The test suite includes comprehensive coverage for multiple algorithm support:
+
+- **test_jwt_keycloak_plugin.sh**: Basic JWT authentication and validation
+- **test_ec_algorithms.sh**: EC algorithm support and algorithm mismatch scenarios
+- **test_multiple_algorithms.sh**: Multiple algorithm configuration scenarios
+  - Accepts tokens when algorithm is in the allowed list
+  - Rejects tokens when algorithm is not in the allowed list
+  - Tests backward compatibility with single algorithm configuration
+  - Verifies default algorithm behavior (RS256)
+- **test_error_conditions.sh**: Error handling and edge cases
+- **test_roles_scopes.sh**: Role and scope validation
+- **test_security_logging.sh**: Security event logging
+
+Run all tests with: `docker compose up tests`

@@ -416,12 +416,22 @@ local function do_authentication(conf)
         }
     end
 
-    local algorithm = conf.algorithm or "RS256"
+    local allowed_algorithms = conf.algorithm or { "RS256" }
 
     -- Verify "alg"
-    kong.log.debug("Expected JWT algorithm: " .. algorithm)
+    kong.log.debug("Allowed JWT algorithms: " .. table.concat(allowed_algorithms, ", "))
     kong.log.debug("Provided JWT algorithm: " .. jwt.header.alg)
-    if jwt.header.alg ~= algorithm then
+    
+    -- Check if the JWT algorithm is in the allowed list
+    local algorithm_valid = false
+    for _, alg in ipairs(allowed_algorithms) do
+        if jwt.header.alg == alg then
+            algorithm_valid = true
+            break
+        end
+    end
+    
+    if not algorithm_valid then
         security_event('ua201', 'ua, token integrity wrong')
         return false, {
             status = 401,
