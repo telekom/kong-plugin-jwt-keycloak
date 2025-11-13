@@ -38,7 +38,6 @@ curl -s -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq
 curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "name=jwt-keycloak" \
   --data "config.allowed_iss=https://wrong-issuer.example.com/auth/realms/test" \
-  --data "config.algorithm=$KC_SIGNING_KEY_ALGORITHM" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
 # Get a token from the real issuer
@@ -62,7 +61,6 @@ curl -s -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq
 curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "name=jwt-keycloak" \
   --data "config.allowed_iss=$KC_URL/auth/realms/$KC_REALM" \
-  --data "config.algorithm=$KC_SIGNING_KEY_ALGORITHM" \
   --data "config.run_on_preflight=false" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
 
@@ -77,7 +75,6 @@ curl -s -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq
 curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "name=jwt-keycloak" \
   --data "config.allowed_iss=$KC_URL/auth/realms/$KC_REALM" \
-  --data "config.algorithm=$KC_SIGNING_KEY_ALGORITHM" \
   --data "config.consumer_match_claim_custom_id=true" \
   --data "config.consumer_match=true" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null

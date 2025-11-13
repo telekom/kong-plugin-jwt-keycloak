@@ -7,6 +7,7 @@ local kong_meta = require "kong.meta"
 
 local socket = require "socket"
 local keycloak_keys = require("kong.plugins.jwt-keycloak.keycloak_keys")
+local plugin_schema = require("kong.plugins.jwt-keycloak.schema")
 
 local validate_issuer = require("kong.plugins.jwt-keycloak.validators.issuers").validate_issuer
 local validate_scope = require("kong.plugins.jwt-keycloak.validators.scope").validate_scope
@@ -33,6 +34,26 @@ local JwtKeycloakHandler = {
     VERSION = kong_meta.version,
     PRIORITY = priority
 }
+
+-------------------------------------------------------------------------------
+-- custom helper function of the extended plugin "jwt-keycloak"
+-- --> extract allowed algorithms from schema
+-------------------------------------------------------------------------------
+local function get_allowed_algorithms_from_schema()
+    -- Navigate through the schema structure to find the algorithm field
+    for _, field in ipairs(plugin_schema.fields) do
+        if field.config then
+            for _, config_field in ipairs(field.config.fields) do
+                if config_field.algorithm and config_field.algorithm.one_of then
+                    return config_field.algorithm.one_of
+                end
+            end
+        end
+    end
+end
+
+-- Cache the allowed algorithms at module load time
+local ALLOWED_ALGORITHMS = get_allowed_algorithms_from_schema()
 
 -------------------------------------------------------------------------------
 -- custom helper function of the extended plugin "jwt-keycloak"
@@ -416,12 +437,18 @@ local function do_authentication(conf)
         }
     end
 
-    local algorithm = conf.algorithm or "RS256"
-
-    -- Verify "alg"
-    kong.log.debug("Expected JWT algorithm: " .. algorithm)
+    -- Verify "alg" - check if algorithm is in allowed list (from schema)
+    local is_valid_algorithm = false
+    
     kong.log.debug("Provided JWT algorithm: " .. jwt.header.alg)
-    if jwt.header.alg ~= algorithm then
+    for _, alg in ipairs(ALLOWED_ALGORITHMS) do
+        if jwt.header.alg == alg then
+            is_valid_algorithm = true
+            break
+        end
+    end
+    
+    if not is_valid_algorithm then
         security_event('ua201', 'ua, token integrity wrong')
         return false, {
             status = 401,

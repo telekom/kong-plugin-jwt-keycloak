@@ -65,12 +65,12 @@ else
     exit 1
 fi
 
-# Test 2: Test EC algorithms
-echo "🧪 Phase 2: Testing EC algorithms..."
-if [ -f ./test_ec_algorithms.sh ]; then
-    . ./test_ec_algorithms.sh
+# Test 2: Test algorithms (RSA and EC)
+echo "🧪 Phase 2: Testing algorithms..."
+if [ -f ./test_algorithms.sh ]; then
+    . ./test_algorithms.sh
 else
-    echo "Error: test_ec_algorithms.sh not found"
+    echo "Error: test_algorithms.sh not found"
     exit 1
 fi
 
