@@ -17,7 +17,7 @@ Key features:
 - Supports rotating public keys
 - Authorization based on token claims (scope, realm_access, resource_access)
 - Matches Keycloak users/clients to Kong consumers
-- Supports EC256/384/512 signature algorithms (feature branch)
+- Supports RSA (RS256, RS384, RS512) and EC (ES256, ES384, ES512) signature algorithms
 
 ## Development Environment
 
@@ -136,7 +136,10 @@ The plugin supports these version combinations:
 - Postgres: 12.x and higher
 - Keycloak: 9.0.3 (RHSSO-7.4), 15.0.2 (RHSSO-7.5), and 26.2.0
 
-## Branch Information
+## Algorithm Support
 
-- Current branch `feature/ec-support` adds support for Elliptic Curve signature algorithms (ES256, ES384, ES512)
-- Main branch `main` is the stable version of the plugin
+The plugin automatically validates JWT tokens with the following signature algorithms:
+- **RSA algorithms**: RS256, RS384, RS512
+- **EC algorithms**: ES256, ES384, ES512
+
+The algorithm is validated from the JWT's `alg` header field. The plugin no longer uses the `config.algorithm` parameter (deprecated), and instead validates that the token's algorithm is one of the supported algorithms listed above.
