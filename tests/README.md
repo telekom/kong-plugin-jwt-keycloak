@@ -59,25 +59,9 @@ Basic JWT validation functionality:
 #### 2. `test_ec_algorithms.sh`
 EC (Elliptic Curve) algorithm support:
 - ES256 token validation
-- Algorithm mismatch rejection
 - Verifies tokens signed with EC algorithms work correctly
 
-#### 3. `test_multiple_algorithms.sh` (NEW)
-Multiple algorithm configuration:
-- **Test 1**: Token acceptance when algorithm is in allowed list
-  - Configures plugin with `[RS256, RS384, ES256, ES384]`
-  - Verifies ES256 token is accepted
-- **Test 2**: Token rejection when algorithm is NOT in allowed list
-  - Configures plugin with `[RS256, RS384, RS512]` (no ES256)
-  - Verifies ES256 token is rejected (401)
-- **Test 3**: Single algorithm configuration (backward compatibility)
-  - Uses old-style single value: `config.algorithm=ES256`
-  - Verifies backward compatibility is maintained
-- **Test 4**: Default algorithm behavior
-  - No algorithm specified (defaults to RS256)
-  - Verifies ES256 token is rejected
-
-#### 4. `test_error_conditions.sh`
+#### 3. `test_error_conditions.sh`
 Error handling scenarios:
 - Malformed tokens
 - Expired tokens
@@ -105,7 +89,7 @@ Set in `_env.sh`:
 - `KC_URL`: Keycloak server URL
 - `KC_CLIENT_ID`: Test client ID
 - `KC_CLIENT_SECRET`: Generated client secret
-- `KC_SIGNING_KEY_ALGORITHM`: Default signing algorithm (ES256)
+- `KC_SIGNING_KEY_ALGORITHM`: Default signing algorithm used by Keycloak (ES256)
 - `KC_REALM`: Keycloak realm name
 
 ## Adding New Tests
@@ -149,8 +133,6 @@ curl -s -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq
 curl -s -X POST $KONG_ADMIN_URL/plugins \
   --data "name=jwt-keycloak" \
   --data "config.allowed_iss=$KC_URL/auth/realms/$KC_REALM" \
-  --data "config.algorithm[]=RS256" \
-  --data "config.algorithm[]=ES256" \
   --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')"
 
 # Test with retry helper
@@ -189,5 +171,5 @@ fi
 
 ### Token Validation Fails
 - Verify Keycloak configuration in `configure_keycloak.sh`
-- Check algorithm matches between Keycloak and plugin config
+- Check that token algorithm is one of: RS256, RS384, RS512, ES256, ES384, ES512
 - Inspect token: `echo $ACCESS_TOKEN | cut -d. -f2 | base64 -d | jq .`

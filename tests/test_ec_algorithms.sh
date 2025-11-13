@@ -9,7 +9,7 @@ if [ -f ./_env.sh ]; then
 fi
 
 # Test EC signature algorithms (ES256, ES384, ES512)
-# This test verifies that the plugin can handle all supported EC algorithms
+# This test verifies that the plugin can handle tokens signed with EC algorithms
 
 echo "🧪 Testing EC signature algorithms..."
 
@@ -39,39 +39,4 @@ if [ "$ES256_RESPONSE" != "200" ]; then
 fi
 
 echo "✅ ES256 algorithm test passed"
-
-# Test error handling - invalid algorithm
-echo "🧪 Testing invalid algorithm rejection..."
-
-# Delete the existing plugin first
-curl -s -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq -r '.data[] | select(.name=="jwt-keycloak") | .id') > /dev/null
-
-# Create a plugin with RS256 algorithm but expect ES256 tokens
-NEW_PLUGIN_RESPONSE=$(curl -s -X POST $KONG_ADMIN_URL/plugins \
-  --data "name=jwt-keycloak" \
-  --data "config.allowed_iss=$KC_URL/auth/realms/$KC_REALM" \
-  --data "config.algorithm=RS256" \
-  --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')")
-
-echo "New plugin config: $(echo $NEW_PLUGIN_RESPONSE | jq '.config.algorithm')"
-
-# Test that ES256 token is rejected when RS256 is expected
-echo "Testing algorithm mismatch: ES256 token with RS256 plugin config"
-
-# Use retry logic for testing algorithm mismatch
-if ! retry_test_after_plugin_change "Invalid algorithm rejection test" "401" "curl -s -w \"%{http_code}\" -X GET $KONG_PROXY_URL/example/get -H \"Authorization: Bearer $ES256_ACCESS_TOKEN\" -o /dev/null"; then
-  exit 1
-fi
-
-# Clean up - restore original plugin configuration
-curl -s -X DELETE $KONG_ADMIN_URL/plugins/$(curl -s $KONG_ADMIN_URL/plugins | jq -r '.data[] | select(.name=="jwt-keycloak") | .id') > /dev/null
-
-curl -s -X POST $KONG_ADMIN_URL/plugins \
-  --data "name=jwt-keycloak" \
-  --data "config.allowed_iss=$KC_URL/auth/realms/$KC_REALM" \
-  --data "config.algorithm=$KC_SIGNING_KEY_ALGORITHM" \
-  --data "config.consumer_match_claim_custom_id=true" \
-  --data "config.consumer_match=true" \
-  --data "route.id=$(curl -s $KONG_ADMIN_URL/routes/example-route | jq -r '.id')" > /dev/null
-
 echo "✅ All EC algorithm tests passed"

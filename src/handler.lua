@@ -416,9 +416,9 @@ local function do_authentication(conf)
         }
     end
 
-    local allowed_algorithms = conf.algorithm or { "RS256" }
-
-    -- Verify "alg"
+    -- Verify "alg" - check against static list of allowed algorithms
+    local allowed_algorithms = { "RS256", "RS384", "RS512", "ES256", "ES384", "ES512" }
+    
     kong.log.debug("Allowed JWT algorithms: " .. table.concat(allowed_algorithms, ", "))
     kong.log.debug("Provided JWT algorithm: " .. jwt.header.alg)
     

@@ -60,15 +60,6 @@ local schema = {
             default = { "authorization" },
           }, },
 
-          { algorithm = {
-            -- description = "A list of allowed signing algorithms for token verification.",
-            type = "set",
-            elements = {
-              type = "string",
-              one_of = { "RS256", "RS384", "RS512", "ES256", "ES384", "ES512" }
-            },
-            default = { "RS256" },
-          }, },
           { allowed_iss = { type = "set", elements = { type = "string" }, required = true }, },
           { iss_key_grace_period = { type = "number", default = 10, between = { 1, 60 }, }, },
           { well_known_template = { type = "string", default = "%s/.well-known/openid-configuration" }, },

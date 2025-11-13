@@ -74,17 +74,8 @@ else
     exit 1
 fi
 
-# Test 3: Test multiple algorithms
-echo "🧪 Phase 3: Testing multiple algorithm support..."
-if [ -f ./test_multiple_algorithms.sh ]; then
-    . ./test_multiple_algorithms.sh
-else
-    echo "Error: test_multiple_algorithms.sh not found"
-    exit 1
-fi
-
-# Test 4: Test error conditions
-echo "🧪 Phase 4: Testing error conditions..."
+# Test 3: Test error conditions
+echo "🧪 Phase 3: Testing error conditions..."
 if [ -f ./test_error_conditions.sh ]; then
     . ./test_error_conditions.sh
 else
