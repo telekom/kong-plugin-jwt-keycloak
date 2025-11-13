@@ -1,6 +1,6 @@
 local plugin_name = "jwt-keycloak"
 local package_name = "kong-plugin-" .. plugin_name
-local package_version = "1.5.0"
+local package_version = "1.6.0"
 local rockspec_revision = "1"
 
 local github_account_name = "telekom"

@@ -8,7 +8,7 @@ x-kong-image: &kong-image
     dockerfile: Dockerfile
     args:
       KONG_VERSION: ${KONG_VERSION:-3.9.1}
-      PLUGIN_VERSION: 1.5.0-1
+      PLUGIN_VERSION: 1.6.0-1
   environment:
     KONG_DATABASE: postgres
     KONG_PG_HOST: postgres
