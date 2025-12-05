@@ -19,7 +19,7 @@ prepare_environment() {
 wait_for_kong() {
   echo "Waiting for Kong to be ready..."
   for i in $(seq 1 30); do
-    if curl -s -o /dev/null $KONG_ADMIN_URL; then
+    if curl -i $KONG_ADMIN_URL; then
       echo "Kong is ready!"
       return 0
     fi
@@ -39,6 +39,7 @@ wait_for_keycloak() {
     fi
     sleep 1
   done
+  curl -i $KC_URL/auth/realms/master/.well-known/openid-configuration
   echo "Keycloak is not ready after 45 seconds, exiting..."
   exit 1
 }

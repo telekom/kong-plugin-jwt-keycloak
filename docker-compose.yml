@@ -91,6 +91,12 @@ services:
     environment:
       - LUA_PATH=/opt/kong-plugin-jwt-keycloak/src/?.lua;/opt/kong-plugin-jwt-keycloak/?.lua;;
       - LUA_CPATH=/usr/local/lib/lua/5.1/?.so;;
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY="localhost,127.0.0.1"
+      - http_proxy=
+      - https_proxy=
+      - no_proxy="localhost,127.0.0.1"
     entrypoint: [ "/bin/sh", "-c", "cd /opt/tests && /bin/sh ./run_tests.sh" ]
 
   httpbin:
