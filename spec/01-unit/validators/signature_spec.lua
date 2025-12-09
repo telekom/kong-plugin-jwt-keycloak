@@ -17,7 +17,47 @@ describe("Plugin: jwt-keycloak (signature validator)", function()
     package.loaded["kong.plugins.jwt-keycloak.validators.signature"] = nil
   end)
 
-  it("should reject when kid is missing", function()
+  it("should accept when kid is missing but single matching key exists", function()
+    local jwt = {
+      header = { alg = "RS256" },
+      verify_signature = function(self, key)
+        return key == "KEY_FOR_RS256"
+      end
+    }
+
+    local public_keys = {
+      keys = { "KEY_FOR_RS256" },
+      kids = { "kid1" },
+      key_metadata = { { alg = "RS256", use = "sig", kty = "RSA" } }
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_nil(err)
+  end)
+
+  it("should reject when kid is missing and multiple keys match algorithm", function()
+    local jwt = {
+      header = { alg = "RS256" },
+    }
+
+    local public_keys = {
+      keys = { "key1", "key2" },
+      kids = { "kid1", "kid2" },
+      key_metadata = {
+        { alg = "RS256", use = "sig", kty = "RSA" },
+        { alg = "RS256", use = "sig", kty = "RSA" }
+      }
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_table(err)
+    assert.equals(401, err.status)
+    assert.equals("kid header required: multiple keys match token algorithm", err.message)
+  end)
+
+  it("should reject when kid is missing and no key matches algorithm", function()
     local jwt = {
       header = { alg = "RS256" },
     }
@@ -25,13 +65,14 @@ describe("Plugin: jwt-keycloak (signature validator)", function()
     local public_keys = {
       keys = { "key1" },
       kids = { "kid1" },
+      key_metadata = { { alg = "ES256", use = "sig", kty = "EC" } }
     }
 
     local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
 
     assert.is_table(err)
     assert.equals(401, err.status)
-    assert.equals("Invalid token: kid header missing", err.message)
+    assert.equals("No matching public key found for token algorithm", err.message)
   end)
 
   it("should reject when kids table is missing", function()
@@ -111,5 +152,149 @@ describe("Plugin: jwt-keycloak (signature validator)", function()
     assert.is_table(err)
     assert.equals(401, err.status)
     assert.equals("Invalid token signature", err.message)
+  end)
+
+  it("should match key by kty when kid is missing (EC key)", function()
+    local jwt = {
+      header = { alg = "ES256" },
+      verify_signature = function(self, key)
+        return key == "EC_KEY"
+      end
+    }
+
+    local public_keys = {
+      keys = { "RSA_KEY", "EC_KEY" },
+      kids = { "kid1", "kid2" },
+      key_metadata = {
+        { kty = "RSA" },
+        { kty = "EC" }
+      }
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_nil(err)
+  end)
+
+  it("should filter out keys with use=enc when kid is missing", function()
+    local jwt = {
+      header = { alg = "RS256" },
+      verify_signature = function(self, key)
+        return key == "SIG_KEY"
+      end
+    }
+
+    local public_keys = {
+      keys = { "ENC_KEY", "SIG_KEY" },
+      kids = { "kid1", "kid2" },
+      key_metadata = {
+        { alg = "RS256", use = "enc", kty = "RSA" },
+        { alg = "RS256", use = "sig", kty = "RSA" }
+      }
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_nil(err)
+  end)
+
+  it("should match when metadata has no alg but kty matches", function()
+    local jwt = {
+      header = { alg = "RS256" },
+      verify_signature = function(self, key)
+        return key == "RSA_KEY"
+      end
+    }
+
+    local public_keys = {
+      keys = { "RSA_KEY" },
+      kids = { "kid1" },
+      key_metadata = {
+        { kty = "RSA" }  -- no alg specified
+      }
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_nil(err)
+  end)
+
+  it("should reject when signature fails with auto-matched key", function()
+    local jwt = {
+      header = { alg = "RS256" },
+      verify_signature = function(self, key)
+        return false  -- signature verification fails
+      end
+    }
+
+    local public_keys = {
+      keys = { "KEY_FOR_RS256" },
+      kids = { "kid1" },
+      key_metadata = {
+        { alg = "RS256", use = "sig", kty = "RSA" }
+      }
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_table(err)
+    assert.equals(401, err.status)
+    assert.equals("Invalid token signature", err.message)
+  end)
+
+  it("should work when key_metadata is nil (backward compatibility)", function()
+    local jwt = {
+      header = { alg = "RS256" },
+    }
+
+    local public_keys = {
+      keys = { "key1", "key2" },
+      kids = { "kid1", "kid2" },
+      key_metadata = nil
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_table(err)
+    assert.equals(401, err.status)
+    assert.equals("No matching public key found for token algorithm", err.message)
+  end)
+
+  it("should reject when no public keys available", function()
+    local jwt = {
+      header = { alg = "RS256" },
+    }
+
+    local public_keys = {
+      keys = {},
+      kids = {},
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_table(err)
+    assert.equals(401, err.status)
+    assert.equals("No public keys available", err.message)
+  end)
+
+  it("should support PS256 (RSA-PSS) algorithm matching", function()
+    local jwt = {
+      header = { alg = "PS256" },
+      verify_signature = function(self, key)
+        return key == "RSA_PSS_KEY"
+      end
+    }
+
+    local public_keys = {
+      keys = { "RSA_PSS_KEY" },
+      kids = { "kid1" },
+      key_metadata = {
+        { kty = "RSA" }
+      }
+    }
+
+    local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
+
+    assert.is_nil(err)
   end)
 end)

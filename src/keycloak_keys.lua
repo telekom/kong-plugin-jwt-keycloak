@@ -59,18 +59,25 @@ local function get_issuer_keys(well_known_endpoint)
 
     local keys = {}
     local kids = {}
+    local key_metadata = {}
     for i, key in ipairs(jwks["keys"]) do
         keys[i] = string.gsub(
             convert.convert_kc_key(key),
             "[\r\n]+", ""
         )
         kids[i] = key.kid
+        -- Store metadata for fallback key selection when kid is absent
+        key_metadata[i] = {
+            alg = key.alg,
+            use = key.use,
+            kty = key.kty
+        }
     end
 
-    -- Preserve original behavior for existing callers by returning keys as first
-    -- value and error as third value. The second return value contains the list
-    -- of kids aligned by index with the keys array.
-    return keys, kids, nil
+    -- Return keys, kids, and key_metadata aligned by index.
+    -- Third return value is error (nil on success).
+    -- Fourth return value is key_metadata array.
+    return keys, kids, nil, key_metadata
 end
 
 return {

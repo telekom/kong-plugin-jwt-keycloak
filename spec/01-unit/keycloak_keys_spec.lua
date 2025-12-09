@@ -59,14 +59,19 @@ describe("Plugin: jwt-keycloak (keycloak_keys)", function()
     it("should return keys and aligned kids from JWKS", function()
       local well_known_endpoint = "https://keycloak.example.com/auth/realms/test/.well-known/openid-configuration"
 
-      local keys, kids, err = keycloak_keys.get_issuer_keys(well_known_endpoint)
+      local keys, kids, err, key_metadata = keycloak_keys.get_issuer_keys(well_known_endpoint)
 
       assert.is_nil(err)
       assert.is_table(keys)
       assert.is_table(kids)
+      assert.is_table(key_metadata)
       assert.equals(2, #keys)
       assert.equals(2, #kids)
+      assert.equals(2, #key_metadata)
       assert.same({ "kid1", "kid2" }, kids)
+      -- Verify metadata structure
+      assert.is_table(key_metadata[1])
+      assert.is_table(key_metadata[2])
     end)
   end)
 end)

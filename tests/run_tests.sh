@@ -100,3 +100,13 @@ else
     echo "Error: test_security_logging.sh not found"
     exit 1
 fi
+
+# Test 6: Test kid optional handling
+echo "🧪 Phase 6: Testing optional kid valitation..."
+if [ -f ./test_kid_optional.sh ]; then
+    . ./test_kid_optional.sh
+else
+    echo "Error: test_kid_optional.sh not found"
+    exit 1
+fi
+

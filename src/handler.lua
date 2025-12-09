@@ -107,7 +107,7 @@ end
 -------------------------------------------------------------------------------
 local function custom_helper_issuer_get_keys(well_known_endpoint, cafile)
     kong.log.debug('Getting public keys from token issuer')
-    local keys, kids, err = keycloak_keys.get_issuer_keys(well_known_endpoint, cafile)
+    local keys, kids, err, key_metadata = keycloak_keys.get_issuer_keys(well_known_endpoint, cafile)
     if err then
         return nil, err
     end
@@ -125,6 +125,7 @@ local function custom_helper_issuer_get_keys(well_known_endpoint, cafile)
     return {
         keys = decoded_keys,
         kids = key_ids,
+        key_metadata = key_metadata,
         updated_at = socket.gettime()
     }
 end
@@ -174,10 +175,14 @@ local function custom_validate_token_signature(conf, jwt, second_call)
     end
 
     -- After optional refresh we still failed; map error message to appropriate security event
-    if err_tbl.message == "Invalid token: kid header missing" then
-        security_event('ua201', 'ua, token integrity wrong, kid missing')
-    elseif err_tbl.message == "Unable to find public key for token kid" then
+    if err_tbl.message == "Unable to find public key for token kid" then
         security_event('ua221', 'ua, public key for kid not available')
+    elseif err_tbl.message == "No matching public key found for token algorithm" then
+        security_event('ua221', 'ua, no matching public key for algorithm')
+    elseif err_tbl.message == "kid header required: multiple keys match token algorithm" then
+        security_event('ua201', 'ua, kid required when multiple keys match')
+    elseif err_tbl.message == "No public keys available" then
+        security_event('ua221', 'ua, no public keys available')
     else
         security_event('ua222', 'ua, invalid token signature')
     end
