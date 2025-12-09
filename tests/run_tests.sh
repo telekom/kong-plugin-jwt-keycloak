@@ -19,6 +19,11 @@ else
     exit 1
 fi
 
+# Test network connectivity (diagnostic)
+if [ -f ./test_network_connectivity.sh ]; then
+    . ./test_network_connectivity.sh
+fi
+
 # Run unit tests first (if available)
 echo "🧪 Phase 0: Running unit tests..."
 if [ -f ./run_unit_tests.sh ]; then

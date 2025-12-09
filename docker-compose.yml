@@ -30,6 +30,8 @@ services:
     depends_on:
       - postgres
     entrypoint: [ "/bin/sh", "-c", "until kong migrations bootstrap; do echo waiting for database; sleep 2; done;" ]
+    networks:
+      - kong-net
   kong:
     <<: *kong-image
     depends_on:
@@ -39,6 +41,8 @@ services:
     ports:
       - "8000:8000"
       - "8001:8001"
+    networks:
+      - kong-net
   postgres:
     image: postgres:16
     environment:
@@ -47,6 +51,8 @@ services:
       POSTGRES_PASSWORD: kong
     volumes:
       - pg_data:/var/lib/postgresql/data
+    networks:
+      - kong-net
   kc-pg:
     image: postgres:16
     environment:
@@ -55,6 +61,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - pg_kc_data:/var/lib/postgresql/data
+    networks:
+      - kong-net
   kc:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.2}
     depends_on:
@@ -75,6 +83,8 @@ services:
       - KC_HOSTNAME_STRICT=false
       - KC_HTTP_RELATIVE_PATH=/auth
       - KC_HTTP_ENABLED=true
+    networks:
+      - kong-net
 
   tests:
     build:
@@ -97,12 +107,21 @@ services:
       - http_proxy=
       - https_proxy=
       - no_proxy="localhost,127.0.0.1"
+    networks:
+      - kong-net
     entrypoint: [ "/bin/sh", "-c", "cd /opt/tests && /bin/sh ./run_tests.sh" ]
 
   httpbin:
     image: mccutchen/go-httpbin:2.18.3
     ports:
       - "8080"
+    networks:
+      - kong-net
+
+networks:
+  kong-net:
+    driver: bridge
+
 volumes:
   pg_data:
   pg_kc_data:
