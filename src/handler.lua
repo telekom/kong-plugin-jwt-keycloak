@@ -166,7 +166,7 @@ local function custom_validate_token_signature(conf, jwt, second_call)
     -- We could not validate signature, try to get a new keyset?
     local since_last_update = socket.gettime() - public_keys.updated_at
     if not second_call and since_last_update > conf.iss_key_grace_period then
-        kong.log.debug('Could not validate signature with kid-matched key. Keys updated last ' .. since_last_update .. ' seconds ago')
+        kong.log.debug('Could not validate signature using keys matched by kid or alg. Keys updated last ' .. since_last_update .. ' seconds ago')
         -- can it be that the signature key of the issuer has changed ... ?
         -- invalidate the old keys in kong cache and do a current lookup to the signature keys
         -- of the token issuer
