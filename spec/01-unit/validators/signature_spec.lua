@@ -28,7 +28,7 @@ describe("Plugin: jwt-keycloak (signature validator)", function()
     local public_keys = {
       keys = { "KEY_FOR_RS256" },
       kids = { "kid1" },
-      key_metadata = { { alg = "RS256", use = "sig", kty = "RSA" } }
+      key_metadata = { { alg = "RS256", use = "sig" } }
     }
 
     local err = signature_validator.validate_signature_with_kid({}, jwt, public_keys)
@@ -92,7 +92,7 @@ describe("Plugin: jwt-keycloak (signature validator)", function()
     assert.equals("Unable to find public key for token kid", err.message)
   end)
 
-  it("should reject when kid is not found in public keys", function()
+  it("should reject when kid is not found in public keys and no match by alg is found", function()
     local jwt = {
       header = { alg = "RS256", kid = "kidX" },
     }
@@ -297,4 +297,5 @@ describe("Plugin: jwt-keycloak (signature validator)", function()
 
     assert.is_nil(err)
   end)
+
 end)

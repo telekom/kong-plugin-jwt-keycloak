@@ -113,18 +113,14 @@ local function custom_helper_issuer_get_keys(well_known_endpoint, cafile)
     end
 
     local decoded_keys = {}
-    local key_ids = {}
     for i, key in ipairs(keys) do
         decoded_keys[i] = custom_base64_decode(key)
-        if kids then
-            key_ids[i] = kids[i]
-        end
     end
 
     kong.log.debug('Number of keys retrieved: ' .. table.getn(decoded_keys))
     return {
         keys = decoded_keys,
-        kids = key_ids,
+        kids = kids,
         key_metadata = key_metadata,
         updated_at = socket.gettime()
     }

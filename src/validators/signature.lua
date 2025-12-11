@@ -17,26 +17,28 @@ local function key_matches_algorithm(key_metadata, jwt_alg)
   end
 
   -- If key has alg specified, it must match JWT alg
-  if key_metadata.alg and key_metadata.alg ~= jwt_alg then
-    return false
+  if key_metadata.alg then
+    return key_metadata.alg == jwt_alg
   end
 
   -- Check kty matches algorithm family
   if jwt_alg then
-    if jwt_alg:sub(1, 2) == "RS" or jwt_alg:sub(1, 2) == "PS" then
+    local jwt_kty_derived = jwt_alg:sub(1, 2)
+    if jwt_kty_derived == "RS" or jwt_kty_derived == "PS" then
       -- RSA algorithms
-      if key_metadata.kty and key_metadata.kty ~= "RSA" then
-        return false
+      if key_metadata.kty and key_metadata.kty == "RSA" then
+        return true
       end
-    elseif jwt_alg:sub(1, 2) == "ES" then
+    elseif jwt_kty_derived == "ES" then
       -- ECDSA algorithms
-      if key_metadata.kty and key_metadata.kty ~= "EC" then
-        return false
+      if key_metadata.kty and key_metadata.kty == "EC" then
+        return true
       end
     end
   end
 
-  return true
+  -- If we get here, the key neither matches the algorithm family nor has a matching alg field, so reject it
+  return false
 end
 
 -- Validates a JWT signature using a key selected by kid from the provided

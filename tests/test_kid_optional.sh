@@ -51,19 +51,4 @@ if ! retry_test_after_plugin_change "Token with kid validation" "200" \
 fi
 echo "✅ Test 1 passed: Token with kid works"
 
-# Note: Creating a token without kid requires:
-# 1. Either modifying Keycloak configuration to not include kid
-# 2. Or creating a custom JWT with a valid signature from the JWKS
-# 3. Or using a test issuer that doesn't include kid
-
-echo ""
-echo "📝 Note: To fully test kid-optional behavior:"
-echo "   - Configure Keycloak to issue tokens without kid, or"
-echo "   - Create custom test tokens signed with JWKS keys but without kid header"
-echo "   - When JWKS has a single key, tokens without kid should validate"
-echo "   - When JWKS has multiple keys of the same type, tokens without kid should be rejected"
-
-echo ""
-echo "✅ Kid-optional infrastructure is in place"
-echo "✅ Unit tests verify the kid-optional logic thoroughly"
-echo "✅ Integration tests confirm existing behavior (with kid) still works"
+echo "⚠️ The test for kid-optional JWT validation is only covered in unit tests / spec validation"
