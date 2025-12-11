@@ -180,7 +180,7 @@ local function custom_validate_token_signature(conf, jwt, second_call)
     elseif err_tbl.message == "No matching public key found for token algorithm" then
         security_event('ua221', 'ua, no matching public key for algorithm')
     elseif err_tbl.message == "kid header required: multiple keys match token algorithm" then
-        security_event('ua201', 'ua, kid required when multiple keys match')
+        security_event('ua221', 'ua, kid required when multiple keys match')
     elseif err_tbl.message == "No public keys available" then
         security_event('ua221', 'ua, no public keys available')
     else
