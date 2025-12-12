@@ -49,22 +49,35 @@ local function get_issuer_keys(well_known_endpoint)
 
     local res, err = get_request(well_known_endpoint, req.scheme, req.port)
     if err then
-        return nil, err
+        return nil, nil, err
     end
 
-    local res, err = get_request(res['jwks_uri'], req.scheme,  req.port)
-    if err then
-        return nil, err
+    local jwks, jwks_err = get_request(res["jwks_uri"], req.scheme, req.port)
+    if jwks_err then
+        return nil, nil, jwks_err
     end
 
     local keys = {}
-    for i, key in ipairs(res['keys']) do
+    local kids = {}
+    local key_metadata = {}
+    for i, key in ipairs(jwks["keys"]) do
         keys[i] = string.gsub(
-            convert.convert_kc_key(key), 
+            convert.convert_kc_key(key),
             "[\r\n]+", ""
         )
+        kids[i] = key.kid
+        -- Store metadata for fallback key selection when kid is absent
+        key_metadata[i] = {
+            alg = key.alg,
+            use = key.use,
+            kty = key.kty
+        }
     end
-    return keys, nil
+
+    -- Return keys, kids, and key_metadata aligned by index.
+    -- Third return value is error (nil on success).
+    -- Fourth return value is key_metadata array.
+    return keys, kids, nil, key_metadata
 end
 
 return {

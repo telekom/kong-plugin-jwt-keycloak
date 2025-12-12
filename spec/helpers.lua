@@ -85,25 +85,71 @@ end
 -- Mock cjson.safe
 local mock_cjson_safe = {
   decode = function(data)
-    -- Simple JSON decoder for tests
-    if data == '{"test": "data"}' then
-      return { test = "data" }
+    -- Minimal JSON decoder for tests, tailored to the structures we use
+    -- Well-known configuration with jwks_uri
+    if data:find('"jwks_uri"') then
+      local jwks_uri = data:match('"jwks_uri"%s*:%s*"([^"]+)"')
+      return { jwks_uri = jwks_uri }, nil
     end
+
+    -- JWKS document with keys and kids
+    if data:find('"keys"') then
+      -- For tests, return 2 RSA keys with kids kid1 and kid2
+      return {
+        keys = {
+          {
+            kid = "kid1",
+            kty = "RSA",
+            n = "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtmY7sFdl7oahqT_Rc59oKHM78bF8HGmKuHqUL6v3Ohl80UR8QFN5Y8o3h8DGf9LUz0p8H2I",
+            e = "AQAB"
+          },
+          {
+            kid = "kid2",
+            kty = "RSA",
+            n = "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtmY7sFdl7oahqT_Rc59oKHM78bF8HGmKuHqUL6v3Ohl80UR8QFN5Y8o3h8DGf9LUz0p8H2I",
+            e = "AQAB"
+          }
+        }
+      }, nil
+    end
+
+    -- Generic test payload
+    if data == '{"test": "data"}' then
+      return { test = "data" }, nil
+    end
+
     return nil, "parse error"
   end
 }
 
 -- Mock socket modules
-local mock_http = {
-  request = function(options)
-    return "result", 200
+local function http_request_mock(options)
+  local url = options.url
+  local sink = options.sink
+
+  local body
+  if url and url:find("openid%-configuration") then
+    body = '{"jwks_uri": "https://keycloak.example.com/auth/realms/test/jwks"}'
+  elseif url and url:find("jwks") then
+    body = '{"keys": []}' -- actual keys are provided by mock_cjson_safe.decode
+  else
+    body = '{"test": "data"}'
   end
+
+  if sink then
+    local writer = sink
+    writer(body)
+  end
+
+  return true, 200
+end
+
+local mock_http = {
+  request = http_request_mock
 }
 
 local mock_https = {
-  request = function(options)
-    return "result", 200
-  end
+  request = http_request_mock
 }
 
 local mock_ltn12 = {

@@ -1,6 +1,6 @@
 local plugin_name = "jwt-keycloak"
 local package_name = "kong-plugin-" .. plugin_name
-local package_version = "1.6.0"
+local package_version = "1.7.0"
 local rockspec_revision = "1"
 
 local github_account_name = "telekom"
@@ -38,8 +38,9 @@ build = {
     ["kong.plugins."..plugin_name..".keycloak_keys"]      = "src/keycloak_keys.lua",
     ["kong.plugins."..plugin_name..".key_conversion"]     = "src/key_conversion.lua",
     ["kong.plugins."..plugin_name..".gateway.securitylog"] = "src/gateway/securitylog.lua",
-    ["kong.plugins."..plugin_name..".validators.issuers"] = "src/validators/issuers.lua",
-    ["kong.plugins."..plugin_name..".validators.roles"]   = "src/validators/roles.lua",
-    ["kong.plugins."..plugin_name..".validators.scope"]   = "src/validators/scope.lua",
+    ["kong.plugins."..plugin_name..".validators.issuers"]   = "src/validators/issuers.lua",
+    ["kong.plugins."..plugin_name..".validators.roles"]     = "src/validators/roles.lua",
+    ["kong.plugins."..plugin_name..".validators.scope"]     = "src/validators/scope.lua",
+    ["kong.plugins."..plugin_name..".validators.signature"] = "src/validators/signature.lua",
   }
 }

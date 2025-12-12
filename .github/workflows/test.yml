@@ -27,5 +27,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: "true"
+      
+      - name: Show Docker info
+        run: |
+          docker --version
+          docker compose version
+          
       - name: Run Tests
         run: docker compose build --no-cache && docker compose up --exit-code-from tests tests
+      
+      - name: Show container status
+        if: failure()
+        run: docker compose ps
+      
+      - name: Show Kong logs
+        if: failure()
+        run: docker compose logs kong
+      
+      - name: Show Keycloak logs
+        if: failure()
+        run: docker compose logs kc
+      
+      - name: Show test logs
+        if: failure()
+        run: docker compose logs tests

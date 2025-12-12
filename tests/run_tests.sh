@@ -19,6 +19,11 @@ else
     exit 1
 fi
 
+# Test network connectivity (diagnostic)
+if [ -f ./test_network_connectivity.sh ]; then
+    . ./test_network_connectivity.sh
+fi
+
 # Run unit tests first (if available)
 echo "🧪 Phase 0: Running unit tests..."
 if [ -f ./run_unit_tests.sh ]; then
@@ -100,3 +105,13 @@ else
     echo "Error: test_security_logging.sh not found"
     exit 1
 fi
+
+# Test 6: Test kid optional handling
+echo "🧪 Phase 6: Testing optional kid valitation..."
+if [ -f ./test_kid_optional.sh ]; then
+    . ./test_kid_optional.sh
+else
+    echo "Error: test_kid_optional.sh not found"
+    exit 1
+fi
+

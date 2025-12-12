@@ -14,6 +14,7 @@ local validate_scope = require("kong.plugins.jwt-keycloak.validators.scope").val
 local validate_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_roles
 local validate_realm_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_realm_roles
 local validate_client_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_client_roles
+local signature_validator = require("kong.plugins.jwt-keycloak.validators.signature")
 
 local re_gmatch = ngx.re.gmatch
 local decode_base64 = ngx.decode_base64
@@ -106,7 +107,7 @@ end
 -------------------------------------------------------------------------------
 local function custom_helper_issuer_get_keys(well_known_endpoint, cafile)
     kong.log.debug('Getting public keys from token issuer')
-    local keys, err = keycloak_keys.get_issuer_keys(well_known_endpoint, cafile)
+    local keys, kids, err, key_metadata = keycloak_keys.get_issuer_keys(well_known_endpoint, cafile)
     if err then
         return nil, err
     end
@@ -119,6 +120,8 @@ local function custom_helper_issuer_get_keys(well_known_endpoint, cafile)
     kong.log.debug('Number of keys retrieved: ' .. table.getn(decoded_keys))
     return {
         keys = decoded_keys,
+        kids = kids,
+        key_metadata = key_metadata,
         updated_at = socket.gettime()
     }
 end
@@ -149,18 +152,17 @@ local function custom_validate_token_signature(conf, jwt, second_call)
         })
     end
 
-    -- Verify signatures
-    for _, k in ipairs(public_keys.keys) do
-        if jwt:verify_signature(k) then
-            kong.log.debug('JWT signature verified')
-            return nil
-        end
+    -- Delegate kid-based selection and signature validation to dedicated validator
+    local err_tbl = signature_validator.validate_signature_with_kid(conf, jwt, public_keys)
+    if not err_tbl then
+        kong.log.debug('JWT signature verified using kid-matched key')
+        return nil
     end
 
     -- We could not validate signature, try to get a new keyset?
     local since_last_update = socket.gettime() - public_keys.updated_at
     if not second_call and since_last_update > conf.iss_key_grace_period then
-        kong.log.debug('Could not validate signature. Keys updated last ' .. since_last_update .. ' seconds ago')
+        kong.log.debug('Could not validate signature using keys matched by kid or alg. Keys updated last ' .. since_last_update .. ' seconds ago')
         -- can it be that the signature key of the issuer has changed ... ?
         -- invalidate the old keys in kong cache and do a current lookup to the signature keys
         -- of the token issuer
@@ -168,9 +170,21 @@ local function custom_validate_token_signature(conf, jwt, second_call)
         return custom_validate_token_signature(conf, jwt, true)
     end
 
-    security_event('ua222', 'ua, invalid token signature')
-    return kong.response.exit(401, {
-        message = "Invalid token signature"
+    -- After optional refresh we still failed; map error message to appropriate security event
+    if err_tbl.message == "Unable to find public key for token kid" then
+        security_event('ua221', 'ua, public key for kid not available')
+    elseif err_tbl.message == "No matching public key found for token algorithm" then
+        security_event('ua221', 'ua, no matching public key for algorithm')
+    elseif err_tbl.message == "kid header required: multiple keys match token algorithm" then
+        security_event('ua221', 'ua, kid required when multiple keys match')
+    elseif err_tbl.message == "No public keys available" then
+        security_event('ua221', 'ua, no public keys available')
+    else
+        security_event('ua222', 'ua, invalid token signature')
+    end
+
+    return kong.response.exit(err_tbl.status, {
+        message = err_tbl.message
     })
 end
 
