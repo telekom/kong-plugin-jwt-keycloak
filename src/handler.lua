@@ -528,7 +528,7 @@ local function do_authentication(conf)
         local ok, _ = custom_match_consumer(conf, jwt)
         if not ok then
             security_event('ua207', 'ua, consumer_match failed') -- this case practically does not occur in the current rover configuration (because consumer_match not used)
-            return ok, err
+            return false, { status = 403, message = "Consumer match failed" }
         end
     end
 
@@ -562,7 +562,7 @@ local function do_authentication(conf)
 
     return false, {
         status = 403,
-        message = "Access token does not have the required scope/role: " .. err
+        message = "Access token does not have the required scope/role: " .. tostring(err)
     }
 end
 
