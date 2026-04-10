@@ -100,13 +100,15 @@ local mock_cjson_safe = {
           {
             kid = "kid1",
             kty = "RSA",
-            n = "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtmY7sFdl7oahqT_Rc59oKHM78bF8HGmKuHqUL6v3Ohl80UR8QFN5Y8o3h8DGf9LUz0p8H2I",
+            n =
+            "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtmY7sFdl7oahqT_Rc59oKHM78bF8HGmKuHqUL6v3Ohl80UR8QFN5Y8o3h8DGf9LUz0p8H2I",
             e = "AQAB"
           },
           {
             kid = "kid2",
             kty = "RSA",
-            n = "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtmY7sFdl7oahqT_Rc59oKHM78bF8HGmKuHqUL6v3Ohl80UR8QFN5Y8o3h8DGf9LUz0p8H2I",
+            n =
+            "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtmY7sFdl7oahqT_Rc59oKHM78bF8HGmKuHqUL6v3Ohl80UR8QFN5Y8o3h8DGf9LUz0p8H2I",
             e = "AQAB"
           }
         }
@@ -122,55 +124,25 @@ local mock_cjson_safe = {
   end
 }
 
--- Mock socket modules
-local function http_request_mock(options)
-  local url = options.url
-  local sink = options.sink
-
-  local body
-  if url and url:find("openid%-configuration") then
-    body = '{"jwks_uri": "https://keycloak.example.com/auth/realms/test/jwks"}'
-  elseif url and url:find("jwks") then
-    body = '{"keys": []}' -- actual keys are provided by mock_cjson_safe.decode
-  else
-    body = '{"test": "data"}'
-  end
-
-  if sink then
-    local writer = sink
-    writer(body)
-  end
-
-  return true, 200
-end
-
-local mock_http = {
-  request = http_request_mock
-}
-
-local mock_https = {
-  request = http_request_mock
-}
-
-local mock_ltn12 = {
-  sink = {
-    table = function(chunks)
-      return function(data)
-        table.insert(chunks, data)
-      end
+-- Mock resty.http module
+local mock_resty_http_instance = {
+  set_timeouts = function(self, connect, send, read) end,
+  request_uri = function(self, request_url, opts)
+    local body
+    if request_url and request_url:find("openid%-configuration") then
+      body = '{"jwks_uri": "https://keycloak.example.com/auth/realms/test/jwks"}'
+    elseif request_url and request_url:find("jwks") then
+      body = '{"keys": []}' -- actual keys are provided by mock_cjson_safe.decode
+    else
+      body = '{"test": "data"}'
     end
-  }
+    return { status = 200, body = body }, nil
+  end
 }
 
--- Mock url parser
-local mock_url = {
-  parse = function(url)
-    local scheme = url:match("^([^:]+):")
-    local port = scheme == "https" and 443 or 80
-    return {
-      scheme = scheme,
-      port = port
-    }
+local mock_resty_http = {
+  new = function()
+    return mock_resty_http_instance, nil
   end
 }
 
@@ -183,19 +155,13 @@ local mock_errlog = {
 }
 
 function helpers.setup_socket_mocks()
-  package.loaded["socket.http"] = mock_http
-  package.loaded["ssl.https"] = mock_https
-  package.loaded["ltn12"] = mock_ltn12
-  package.loaded["socket.url"] = mock_url
+  package.loaded["resty.http"] = mock_resty_http
   package.loaded["cjson.safe"] = mock_cjson_safe
   package.loaded["ngx.errlog"] = mock_errlog
 end
 
 function helpers.teardown_socket_mocks()
-  package.loaded["socket.http"] = nil
-  package.loaded["ssl.https"] = nil
-  package.loaded["ltn12"] = nil
-  package.loaded["socket.url"] = nil
+  package.loaded["resty.http"] = nil
   package.loaded["cjson.safe"] = nil
   package.loaded["ngx.errlog"] = nil
 end

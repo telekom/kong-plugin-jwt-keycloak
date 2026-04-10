@@ -2,41 +2,39 @@
 --
 -- SPDX-License-Identifier: Apache-2.0
 
-local url = require "socket.url"
-local http = require "socket.http"
-local https = require "ssl.https"
+local http = require "resty.http"
 local cjson_safe = require "cjson.safe"
 local convert = require "kong.plugins.jwt-keycloak.key_conversion"
 
-local function get_request(url, scheme, port)
-    local req
-    if scheme == "https" then
-        req = https.request
-    else
-        req = http.request
+local DEFAULT_TIMEOUT = 10000 -- 10 seconds (connect, send, read)
+
+local function get_request(request_url)
+    local httpc, err = http.new()
+    if not httpc then
+        return nil, 'Failed to create HTTP client: ' .. (err or 'unknown')
     end
 
-    local res
-    local status
-    local err
+    httpc:set_timeouts(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, DEFAULT_TIMEOUT)
 
-    local chunks = {}
-    res, status = req{
-        url = url,
-        port = port,
-        sink = ltn12.sink.table(chunks)
-    }
-    
-    if status ~= 200 then
-        return nil, 'Failed calling url ' .. url .. ' response status ' .. status
-    end
+    local res, req_err = httpc:request_uri(request_url, {
+        method = "GET",
+        ssl_verify = false,
+    })
 
-    res, err = cjson_safe.decode(table.concat(chunks))
     if not res then
+        return nil, 'Failed calling url ' .. request_url .. ': ' .. (req_err or 'unknown')
+    end
+
+    if res.status ~= 200 then
+        return nil, 'Failed calling url ' .. request_url .. ' response status ' .. res.status
+    end
+
+    local body, decode_err = cjson_safe.decode(res.body)
+    if not body then
         return nil, 'Failed to parse json response'
     end
-    
-    return res, nil
+
+    return body, nil
 end
 
 local function get_wellknown_endpoint(well_known_template, issuer)
@@ -44,15 +42,12 @@ local function get_wellknown_endpoint(well_known_template, issuer)
 end
 
 local function get_issuer_keys(well_known_endpoint)
-    -- Get port of the request: This is done because keycloak 3.X.X does not play well with lua socket.http
-    local req = url.parse(well_known_endpoint)
-
-    local res, err = get_request(well_known_endpoint, req.scheme, req.port)
+    local res, err = get_request(well_known_endpoint)
     if err then
         return nil, nil, err
     end
 
-    local jwks, jwks_err = get_request(res["jwks_uri"], req.scheme, req.port)
+    local jwks, jwks_err = get_request(res["jwks_uri"])
     if jwks_err then
         return nil, nil, jwks_err
     end

@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 # Kong Plugin jwt-keycloak
 
 > **⚠️ This fork is a continuation of https://github.com/telekom-digioss/kong-plugin-jwt-keycloak for a limited set of
-version combinations**
+> version combinations**
 >
 > The official author of the plugin no longer maintains it since 24.08.2021  
 > Details see: <https://github.com/gbbirkisson/kong-plugin-jwt-keycloak/blob/master/README.md>
@@ -20,12 +20,12 @@ that are specifically allowed for each endpoint.
 
 The biggest advantages of this plugin are that it supports:
 
-* Rotating public keys
-* Authorization based on token claims:
-    * `scope`
-    * `realm_access`
-    * `resource_access`
-* Matching Keycloak users/clients to Kong consumers
+- Rotating public keys
+- Authorization based on token claims:
+  - `scope`
+  - `realm_access`
+  - `resource_access`
+- Matching Keycloak users/clients to Kong consumers
 
 If you have any suggestion or comments, please feel free to open an issue on this GitHub page.
 
@@ -34,46 +34,46 @@ If you have any suggestion or comments, please feel free to open an issue on thi
 - [Table of Contents](#table-of-contents)
 - [Tested and working for](#tested-and-working-for)
 - [Installation](#installation)
-    - [Using luarocks](#using-luarocks)
-    - [From source](#from-source)
-        - [Packing the rock](#packing-the-rock)
-        - [Installing the rock](#installing-the-rock)
-    - [Enabling plugin](#enabling-plugin)
-    - [Changing plugin priority](#changing-plugin-priority)
-    - [Examples](#examples)
+  - [Using luarocks](#using-luarocks)
+  - [From source](#from-source)
+    - [Packing the rock](#packing-the-rock)
+    - [Installing the rock](#installing-the-rock)
+  - [Enabling plugin](#enabling-plugin)
+  - [Changing plugin priority](#changing-plugin-priority)
+  - [Examples](#examples)
 - [Usage](#usage)
-    - [Enabling on endpoints](#enabling-on-endpoints)
-        - [Service](#service)
-        - [Route](#route)
-        - [Globally](#globally)
-    - [Parameters](#parameters)
-    - [Example](#example)
-    - [Caveats](#caveats)
+  - [Enabling on endpoints](#enabling-on-endpoints)
+    - [Service](#service)
+    - [Route](#route)
+    - [Globally](#globally)
+  - [Parameters](#parameters)
+  - [Example](#example)
+  - [Caveats](#caveats)
 - [Testing](#testing)
-    - [Setup before tests](#setup-before-tests)
-    - [Running tests](#running-tests)
+  - [Setup before tests](#setup-before-tests)
+  - [Running tests](#running-tests)
 
 ## Tested and working for
 
 There are a few limitations about testing combinations:
 
-* Due to the nature of the test setup, we can only test a multitude of Kong versions with a limited set of 
+- Due to the nature of the test setup, we can only test a multitude of Kong versions with a limited set of
   rather recent Keycloak versions.
 
 | Kong Version | Keycloak Version | Passing |
-|--------------|:----------------:|:-------:|
-| 2.8.3        |       26.0       |    ✅    |
-| 2.8.3        |       26.3       |    ✅    |
-| 3.0          |       26.0       |    ✅    |
-| 3.0          |       26.3       |    ✅    |
-| 3.4          |       26.0       |    ✅    |
-| 3.4          |       26.3       |    ✅    |
-| 3.5          |       26.0       |    ✅    |
-| 3.5          |       26.3       |    ✅    |
-| 3.8          |       26.0       |    ✅    |
-| 3.8          |       26.3       |    ✅    |
-| 3.9.1        |       26.0       |    ✅    |
-| 3.9.1        |       26.3       |    ✅    |
+| ------------ | :--------------: | :-----: |
+| 2.8.3        |       26.0       |   ✅    |
+| 2.8.3        |       26.3       |   ✅    |
+| 3.0          |       26.0       |   ✅    |
+| 3.0          |       26.3       |   ✅    |
+| 3.4          |       26.0       |   ✅    |
+| 3.4          |       26.3       |   ✅    |
+| 3.5          |       26.0       |   ✅    |
+| 3.5          |       26.3       |   ✅    |
+| 3.8          |       26.0       |   ✅    |
+| 3.8          |       26.3       |   ✅    |
+| 3.9.1        |       26.0       |   ✅    |
+| 3.9.1        |       26.3       |   ✅    |
 
 ## Installation
 
@@ -88,7 +88,7 @@ luarocks install kong-plugin-jwt-keycloak
 #### Packing the rock
 
 ```bash
-export PLUGIN_VERSION=1.7.0-1
+export PLUGIN_VERSION=1.8.0-1
 luarocks make
 luarocks pack kong-plugin-jwt-keycloak ${PLUGIN_VERSION}
 ```
@@ -96,7 +96,7 @@ luarocks pack kong-plugin-jwt-keycloak ${PLUGIN_VERSION}
 #### Installing the rock
 
 ```bash
-export PLUGIN_VERSION=1.7.0-1
+export PLUGIN_VERSION=1.8.0-1
 luarocks install jwt-keycloak-${PLUGIN_VERSION}.all.rock
 ```
 
@@ -148,7 +148,7 @@ curl -X POST http://localhost:8001/plugins \
 ### Parameters
 
 | Parameter                              | Requied | Default           | Description                                                                                                                                                                                                                                                                                                                                                                              |
-|----------------------------------------|---------|-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------------------------------- | ------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | name                                   | yes     |                   | The name of the plugin to use, in this case `keycloak-jwt`.                                                                                                                                                                                                                                                                                                                              |
 | service_id                             | semi    |                   | The id of the Service which this plugin will target.                                                                                                                                                                                                                                                                                                                                     |
 | route_id                               | semi    |                   | The id of the Route which this plugin will target.                                                                                                                                                                                                                                                                                                                                       |
@@ -160,10 +160,10 @@ curl -X POST http://localhost:8001/plugins \
 | config.run_on_preflight                | no      | `true`            | A boolean value that indicates whether the plugin should run (and try to authenticate) on `OPTIONS` preflight requests, if set to false then `OPTIONS` requests will always be allowed.                                                                                                                                                                                                  |
 | config.header_names                    | no      | `authorization`   | A list of HTTP header names that Kong will inspect to retrieve JWTs. `OPTIONS` requests will always be allowed.                                                                                                                                                                                                                                                                          |
 | config.maximum_expiration              | no      | `0`               | An integer limiting the lifetime of the JWT to `maximum_expiration` seconds in the future. Any JWT that has a longer lifetime will rejected (HTTP 403). If this value is specified, `exp` must be specified as well in the `claims_to_verify` property. The default value of `0` represents an indefinite period. Potential clock skew should be considered when configuring this value. |
-| config.algorithm                       | no      | `RS256`           | **Deprecated - No longer used.** The plugin now automatically validates that the JWT algorithm (`alg` header) is one of the supported algorithms: `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, or `ES512`. This field is kept for backwards compatibility but has no effect.                                                                                                            |
+| config.algorithm                       | no      | `RS256`           | **Deprecated - No longer used.** The plugin now automatically validates that the JWT algorithm (`alg` header) is one of the supported algorithms: `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, or `ES512`. This field is kept for backwards compatibility but has no effect.                                                                                                             |
 | config.allowed_iss                     | yes     |                   | A list of allowed issuers for this route/service/api. Can be specified as a `string` or as a [Pattern](http://lua-users.org/wiki/PatternsTutorial).                                                                                                                                                                                                                                      |
 | config.iss_key_grace_period            | no      | `10`              | An integer that sets the number of seconds until public keys for an issuer can be updated after writing new keys to the cache. This is a guard so that the Kong cache will not invalidate every time a token signed with an invalid public key is sent to the plugin.                                                                                                                    |
-| config.well_known_template             | false   | *see description* | A string template that the well known endpoint for keycloak is created from. String formatting is applied on the template and `%s` is replaced by the issuer of the token. Default value is `%s/.well-known/openid-configuration`                                                                                                                                                        |
+| config.well_known_template             | false   | _see description_ | A string template that the well known endpoint for keycloak is created from. String formatting is applied on the template and `%s` is replaced by the issuer of the token. Default value is `%s/.well-known/openid-configuration`                                                                                                                                                        |
 | config.scope                           | no      |                   | A list of scopes the token must have to access the api, i.e. `["email"]`. The token only has to have one of the listed scopes to be authorized.                                                                                                                                                                                                                                          |
 | config.roles                           | no      |                   | A list of roles of current client the token must have to access the api, i.e. `["uma_protection"]`. The token only has to have one of the listed roles to be authorized.                                                                                                                                                                                                                 |
 | config.realm_roles                     | no      |                   | A list of realm roles (`realm_access`) the token must have to access the api, i.e. `["offline_access"]`. The token only has to have one of the listed roles to be authorized.                                                                                                                                                                                                            |
@@ -187,7 +187,7 @@ curl -X POST http://localhost:8001/services/httpbin-anything/plugins \
     --data "config.allowed_iss=http://localhost:8080/auth/realms/master"
 
 curl -X POST http://localhost:8001/services/httpbin-anything/routes \
-    --data "paths=/" 
+    --data "paths=/"
 ```
 
 Then you can call the API:
@@ -228,7 +228,7 @@ for some reason the plugin is unable to access these endpoints.
 
 Requires:
 
-* docker
+- docker
 
 ### Setup before tests
 
