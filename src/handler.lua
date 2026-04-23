@@ -438,7 +438,7 @@ local function do_authentication(conf)
         security_event('ua201', 'ua, token integrity wrong')
         return false, {
             status = 401,
-            message = "Bad token; " .. tostring(err)
+            message = "Bad token; " .. tostring(jwt_err)
         }
     end
 
