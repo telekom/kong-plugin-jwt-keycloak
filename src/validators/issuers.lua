@@ -17,6 +17,24 @@ local function validate_issuer(allowed_issuers, jwt_claims)
     return nil, "Token issuer not allowed"
 end
 
+-- Checks whether a token's iss claim matches any entry in the blocked_issuers list.
+-- Uses exact match only — unlike allowed_issuers, entries are not treated as Lua
+-- patterns. This is an emergency measure — JWT_KEYCLOAK_BLOCKED_ISSUERS can be set
+-- to plain URLs without knowledge of Lua pattern syntax, and exact match avoids silent over-blocking from
+-- unescaped magic characters (e.g. dots) in URLs.
+-- Returns false for a nil iss or nil/empty blocked_issuers — a missing issuer claim
+-- is not treated as blocked; it will be rejected downstream by validate_issuer.
+local function is_issuer_blocked(blocked_issuers, iss)
+    if not blocked_issuers or iss == nil then return false end
+    for _, blocked in ipairs(blocked_issuers) do
+        if blocked == iss then
+            return true
+        end
+    end
+    return false
+end
+
 return {
-    validate_issuer = validate_issuer
+    validate_issuer = validate_issuer,
+    is_issuer_blocked = is_issuer_blocked,
 }
