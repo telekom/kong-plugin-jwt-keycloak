@@ -3,6 +3,7 @@
 -- SPDX-License-Identifier: Apache-2.0
 
 local validate_issuer = require("kong.plugins.jwt-keycloak.validators.issuers").validate_issuer
+local is_issuer_blocked = require("kong.plugins.jwt-keycloak.validators.issuers").is_issuer_blocked
 
 describe("Plugin: jwt-keycloak (issuers validator)", function()
   describe("validate_issuer", function()
@@ -76,4 +77,56 @@ describe("Plugin: jwt-keycloak (issuers validator)", function()
       assert.equals("Allowed issuers is empty", err)
     end)
   end)
+
+  describe("is_issuer_blocked", function()
+    it("should not block when blocked_issuers is nil", function()
+      local result = is_issuer_blocked(nil, "https://keycloak.example.com/auth/realms/test")
+
+      assert.is_false(result)
+    end)
+
+    it("should not block when iss is nil", function()
+      local blocked_issuers = {"https://compromised.example.com/auth/realms/default"}
+
+      local result = is_issuer_blocked(blocked_issuers, nil)
+
+      assert.is_false(result)
+    end)
+
+    it("should not block when blocked list is empty", function()
+      local blocked_issuers = {}
+
+      local result = is_issuer_blocked(blocked_issuers, "https://keycloak.example.com/auth/realms/test")
+
+      assert.is_false(result)
+    end)
+
+    it("should block on exact match", function()
+      local blocked_issuers = {"https://compromised.example.com/auth/realms/default"}
+
+      local result = is_issuer_blocked(blocked_issuers, "https://compromised.example.com/auth/realms/default")
+
+      assert.is_true(result)
+    end)
+
+    it("should not block when iss does not match any entry", function()
+      local blocked_issuers = {"https://compromised.example.com/auth/realms/default"}
+
+      local result = is_issuer_blocked(blocked_issuers, "https://legitimate.example.com/auth/realms/default")
+
+      assert.is_false(result)
+    end)
+
+    it("should block when iss matches a non-first entry", function()
+      local blocked_issuers = {
+        "https://other-compromised.example.com/auth/realms/default",
+        "https://compromised.example.com/auth/realms/default",
+      }
+
+      local result = is_issuer_blocked(blocked_issuers, "https://compromised.example.com/auth/realms/default")
+
+      assert.is_true(result)
+    end)
+  end)
 end)
+

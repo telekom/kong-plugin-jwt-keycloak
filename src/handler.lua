@@ -10,6 +10,7 @@ local keycloak_keys = require("kong.plugins.jwt-keycloak.keycloak_keys")
 local plugin_schema = require("kong.plugins.jwt-keycloak.schema")
 
 local validate_issuer = require("kong.plugins.jwt-keycloak.validators.issuers").validate_issuer
+local is_issuer_blocked = require("kong.plugins.jwt-keycloak.validators.issuers").is_issuer_blocked
 local validate_scope = require("kong.plugins.jwt-keycloak.validators.scope").validate_scope
 local validate_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_roles
 local validate_realm_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_realm_roles
@@ -30,6 +31,16 @@ else
     priority = 1005
 end
 kong.log.debug('JWT_KEYCLOAK_PRIORITY: ' .. priority)
+
+local blocked_issuers_env_var = "JWT_KEYCLOAK_BLOCKED_ISSUERS"
+local BLOCKED_ISSUERS = {}
+local raw_blocked = os.getenv(blocked_issuers_env_var)
+if raw_blocked and raw_blocked ~= "" then
+    for entry in raw_blocked:gmatch("[^,]+") do
+        BLOCKED_ISSUERS[#BLOCKED_ISSUERS + 1] = entry:match("^%s*(.-)%s*$")
+    end
+end
+kong.log.debug('JWT_KEYCLOAK_BLOCKED_ISSUERS count: ' .. #BLOCKED_ISSUERS)
 
 local JwtKeycloakHandler = {
     VERSION = kong_meta.version,
@@ -439,6 +450,16 @@ local function do_authentication(conf)
         return false, {
             status = 401,
             message = "Bad token; " .. tostring(jwt_err)
+        }
+    end
+
+    -- Check zone-wide issuer blocklist (set at deploy time via JWT_KEYCLOAK_BLOCKED_ISSUERS
+    -- as an emergency measure to block compromised consumer zone gateway issuers)
+    if is_issuer_blocked(BLOCKED_ISSUERS, jwt.claims.iss) then
+        security_event('ua222', 'ua, issuer is blocked')
+        return false, {
+            status = 401,
+            message = "Token issuer is blocked"
         }
     end
 
