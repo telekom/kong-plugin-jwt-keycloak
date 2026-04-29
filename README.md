@@ -109,6 +109,27 @@ Set enabled kong enabled plugins, i.e. with environmental variable: `KONG_PLUGIN
 In some cases you might want to change the execution priority of the plugin. You can do that by setting an environmental
 variable: `JWT_KEYCLOAK_PRIORITY="900"`
 
+### Blocking issuers zone-wide (emergency revocation)
+
+In an emergency — for example, when a consumer zone's signing key is compromised — you can immediately block all tokens
+from one or more issuers across every route on the Kong node, without waiting for per-route configuration to be
+reprocessed. Set the `JWT_KEYCLOAK_BLOCKED_ISSUERS` environment variable to a comma-separated list of issuer URLs
+before starting Kong:
+
+```bash
+JWT_KEYCLOAK_BLOCKED_ISSUERS="https://stargate-cetus.example.com/auth/realms/default"
+```
+
+Multiple issuers:
+
+```bash
+JWT_KEYCLOAK_BLOCKED_ISSUERS="https://stargate-cetus.example.com/auth/realms/default,https://stargate-aws.example.com/auth/realms/default"
+```
+
+Tokens whose `iss` claim exactly matches any entry in this list are rejected with `401` before any per-route
+`allowed_iss` check. The list is read once at worker startup — a Kong restart or redeploy is required to update it.
+Entries are plain URLs and are matched exactly (no Lua patterns).
+
 ### Examples
 
 See [Dockerfile](./Dockerfile) for more concrete examples.
@@ -161,7 +182,7 @@ curl -X POST http://localhost:8001/plugins \
 | config.header_names                    | no      | `authorization`   | A list of HTTP header names that Kong will inspect to retrieve JWTs. `OPTIONS` requests will always be allowed.                                                                                                                                                                                                                                                                          |
 | config.maximum_expiration              | no      | `0`               | An integer limiting the lifetime of the JWT to `maximum_expiration` seconds in the future. Any JWT that has a longer lifetime will rejected (HTTP 403). If this value is specified, `exp` must be specified as well in the `claims_to_verify` property. The default value of `0` represents an indefinite period. Potential clock skew should be considered when configuring this value. |
 | config.algorithm                       | no      | `RS256`           | **Deprecated - No longer used.** The plugin now automatically validates that the JWT algorithm (`alg` header) is one of the supported algorithms: `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, or `ES512`. This field is kept for backwards compatibility but has no effect.                                                                                                            |
-| config.allowed_iss                     | yes     |                   | A list of allowed issuers for this route/service/api. Can be specified as a `string` or as a [Pattern](http://lua-users.org/wiki/PatternsTutorial).                                                                                                                                                                                                                                      |
+| config.allowed_iss                     | yes     |                   | A list of allowed issuers for this route/service/api. Can be specified as a `string` or as a [Lua Pattern](http://lua-users.org/wiki/PatternsTutorial). **Note:** because entries are treated as Lua patterns, dots in plain URLs act as wildcards unless escaped as `%.`. For exact matching of a literal URL, escape all magic characters (e.g. `https://iris%.example%.com/auth/realms/default`). |
 | config.iss_key_grace_period            | no      | `10`              | An integer that sets the number of seconds until public keys for an issuer can be updated after writing new keys to the cache. This is a guard so that the Kong cache will not invalidate every time a token signed with an invalid public key is sent to the plugin.                                                                                                                    |
 | config.well_known_template             | false   | *see description* | A string template that the well known endpoint for keycloak is created from. String formatting is applied on the template and `%s` is replaced by the issuer of the token. Default value is `%s/.well-known/openid-configuration`                                                                                                                                                        |
 | config.scope                           | no      |                   | A list of scopes the token must have to access the api, i.e. `["email"]`. The token only has to have one of the listed scopes to be authorized.                                                                                                                                                                                                                                          |
