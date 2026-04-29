@@ -109,27 +109,6 @@ Set enabled kong enabled plugins, i.e. with environmental variable: `KONG_PLUGIN
 In some cases you might want to change the execution priority of the plugin. You can do that by setting an environmental
 variable: `JWT_KEYCLOAK_PRIORITY="900"`
 
-### Blocking issuers zone-wide (emergency revocation)
-
-In an emergency — for example, when a consumer zone's signing key is compromised — you can immediately block all tokens
-from one or more issuers across every route on the Kong node, without waiting for per-route configuration to be
-reprocessed. Set the `JWT_KEYCLOAK_BLOCKED_ISSUERS` environment variable to a comma-separated list of issuer URLs
-before starting Kong:
-
-```bash
-JWT_KEYCLOAK_BLOCKED_ISSUERS="https://stargate-cetus.example.com/auth/realms/default"
-```
-
-Multiple issuers:
-
-```bash
-JWT_KEYCLOAK_BLOCKED_ISSUERS="https://stargate-cetus.example.com/auth/realms/default,https://stargate-aws.example.com/auth/realms/default"
-```
-
-Tokens whose `iss` claim exactly matches any entry in this list are rejected with `401` before any per-route
-`allowed_iss` check. The list is read once at worker startup — a Kong restart or redeploy is required to update it.
-Entries are plain URLs and are matched exactly (no Lua patterns).
-
 ### Examples
 
 See [Dockerfile](./Dockerfile) for more concrete examples.
@@ -237,6 +216,27 @@ curl -H "Authorization: Bearer ${ACCESS_TOKEN}" http://localhost:8000/ \
 ```
 
 This should give you the response: `plugin=working`
+
+### Blocking issuers zone-wide (emergency revocation)
+
+In an emergency — for example, when a consumer gateway's signing key is compromised — you can immediately block all tokens
+from one or more issuers across every route on the Kong node, without waiting for per-route configuration to be
+reprocessed. Set the `JWT_KEYCLOAK_BLOCKED_ISSUERS` environment variable to a comma-separated list of issuer URLs
+before starting Kong:
+
+```bash
+JWT_KEYCLOAK_BLOCKED_ISSUERS="https://gateway-a.example.com/auth/realms/default"
+```
+
+Multiple issuers:
+
+```bash
+JWT_KEYCLOAK_BLOCKED_ISSUERS="https://gateway-a.example.com/auth/realms/default,https://gateway-b.example.com/auth/realms/default"
+```
+
+Tokens whose `iss` claim exactly matches any entry in this list are rejected with `401` before any per-route
+`allowed_iss` check. The list is read once at worker startup — a Kong restart or redeploy is required to update it.
+Entries are plain URLs and are matched exactly (no Lua patterns).
 
 ### Caveats
 
