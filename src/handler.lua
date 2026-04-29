@@ -444,6 +444,7 @@ local function do_authentication(conf)
     end
 
     -- Decode token to find out who the consumer is
+    kong.log.debug("Validating token: ", token)
     local jwt, jwt_err = jwt_decoder:new(token)
     if jwt_err then
         security_event('ua201', 'ua, token integrity wrong')
