@@ -16,13 +16,18 @@ describe("Plugin: jwt-keycloak (issuers validator)", function()
       assert.is_true(result)
     end)
 
-    it("should allow pattern match issuer", function()
-      local allowed_issuers = {"https://keycloak%.example%.com/auth/realms/.*"}
+    it("should not treat allowed_iss entries as Lua patterns", function()
+      -- Changed in 1.8.1: allowed_iss entries are matched by exact string equality only.
+      -- Previously, entries were treated as Lua patterns via string.match, which allowed
+      -- unescaped dots to act as wildcards and unanchored substring attacks.
+      -- A Lua-pattern-shaped entry must not match a plain URL via pattern semantics.
+      local allowed_issuers = {"https://keycloak%.example%.com/auth/realms/test"}
       local jwt_claims = {iss = "https://keycloak.example.com/auth/realms/test"}
-      
-      local result = validate_issuer(allowed_issuers, jwt_claims)
-      
-      assert.is_true(result)
+
+      local result, err = validate_issuer(allowed_issuers, jwt_claims)
+
+      assert.is_nil(result)
+      assert.equals("Token issuer not allowed", err)
     end)
 
     it("should allow multiple issuers", function()
