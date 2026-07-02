@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ## Build plugin
-ARG KONG_VERSION=3.9.1
+ARG KONG_VERSION=3.9.3
 
 FROM docker.io/kong:${KONG_VERSION} AS builder
 

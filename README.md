@@ -74,6 +74,8 @@ There are a few limitations about testing combinations:
 | 3.8          |       26.3       |    ✅    |
 | 3.9.1        |       26.0       |    ✅    |
 | 3.9.1        |       26.3       |    ✅    |
+| 3.9.3        |       26.0       |    ✅    |
+| 3.9.3        |       26.3       |    ✅    |
 
 ## Installation
 
